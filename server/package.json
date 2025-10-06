@@ -1,0 +1,19 @@
+{
+  "name": "waste-management-server",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+     "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": ["waste-management", "express", "mongodb"],
+  "author": "shivam",
+  "license": "MIT",
+  "description": "Backend API for waste management platform",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
