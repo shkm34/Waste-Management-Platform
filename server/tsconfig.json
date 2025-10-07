@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2020",                    // Compile to ES2020 JavaScript
+    "lib": ["ES2020"],                      // Use ES2020 features
+    
+    /* Modules */
+    "module": "commonjs",                   // Use Node.js module system
+    "rootDir": "./src",                     // Source code location
+    "moduleResolution": "node",             // How to resolve imports
+    "resolveJsonModule": true,              // Allow importing .json files
+    
+    /* JavaScript Support */
+    "allowJs": false,                       // Only TypeScript files
+    
+    /* Emit */
+    "outDir": "./dist",                     // Compiled output location
+    "removeComments": true,                 // Remove comments in output
+    
+    /* Interop Constraints */
+    "esModuleInterop": true,                // Allow default imports
+    "forceConsistentCasingInFileNames": true, // File name case sensitivity
+    
+    /* Type Checking */
+    "strict": true,                         // Enable all strict type checks
+    "noImplicitAny": true,                  // Error on implicit 'any' types
+    "strictNullChecks": true,               // Null/undefined must be explicit
+    "noUnusedLocals": true,                 // Error on unused variables
+    "noUnusedParameters": true,             // Error on unused function params
+    
+    /* Skip Type Checking */
+    "skipLibCheck": true                    // Skip checking node_modules types
+  },
+  "include": ["src/**/*"],                  // Which files to compile
+  "exclude": ["node_modules", "dist"]       // Which folders to ignore
+}
