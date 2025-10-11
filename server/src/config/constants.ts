@@ -38,6 +38,7 @@ export const WASTE_TYPES = {
 export const DRIVER_STATUS = {
   AVAILABLE: "available",
   BUSY: "busy",
+  OFFLINE: "offline",
 } as const;
 
 // Transaction types
