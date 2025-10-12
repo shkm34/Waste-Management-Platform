@@ -8,7 +8,7 @@ const LocationSchema: Schema = new Schema(
   {
     address: {
       type: String,
-      required: [true, "Address is Required"],
+      //required: [true, "Address is Required"],
       trim: true,
     },
     latitude: {
@@ -93,7 +93,7 @@ const UserSchema: Schema<IUserDocument> = new Schema(
         values: Object.values(DRIVER_STATUS),
         message: "{VALUE} is not a valid driver status",
       },
-      default: DRIVER_STATUS.AVAILABLE,
+      default: DRIVER_STATUS.OFFLINE,
     },
   },
   {

@@ -4,9 +4,9 @@ export const NODE_ENV = process.env.NODE_ENV || "development";
 
 export const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
-export const JWT_SECTRET = process.env.JWT_SECTRET || "fallback-secret";
+export const JWT_SECRET = process.env.JWT_SECRET || 'fallbackkey@123' as string;
 
-export const JWT_EXPIRE = process.env.JWT_EXPIRE || "30d";
+export const JWT_EXPIRE = process.env.JWT_EXPIRE || '30d' as string;
 
 // Status Value for garbage collection
 

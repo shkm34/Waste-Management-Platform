@@ -4,6 +4,7 @@ import cors from "cors";
 import { connectDatabase, setupDatabaseEvents } from "./config/database";
 import { PORT, CLIENT_URL, NODE_ENV } from "./config/constants";
 import { errorHandler } from './middleware/errorMiddleware';
+import authRoutes from './routes/authRoutes';
 
 dotenv.config();
 
@@ -40,6 +41,15 @@ app.get("/api/health", (_req: Request, res: Response) => {
   });
 });
 
+// API route
+app.use('/api/auth', authRoutes);
+
+app.post('/debug-body', (req, res) => {
+  console.log('headers:', req.headers);
+  console.log('body (raw):', req.body);
+  res.json({ ok: true, body: req.body });
+});
+
 // Root route
 app.get("/", (_req: Request, res: Response) => {
   res.json({
@@ -54,6 +64,7 @@ app.get("/", (_req: Request, res: Response) => {
     },
   });
 });
+
 
 // 404 error handling
 app.use((req: Request, res: Response) => {

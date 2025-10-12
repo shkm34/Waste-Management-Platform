@@ -12,7 +12,7 @@ export interface IUser {
     phone: string
     password: string
     role: 'customer' | 'driver' | 'dealer'
-    location: ILocation
+    location?: ILocation
 
     // for customer
     walletBalance?: number
@@ -25,6 +25,7 @@ export interface IUser {
 }
 
 export interface IUserDocument extends IUser, Document {
+    _id: string,
     comparePassword(candidatePassword: string): Promise<boolean>;
     createdAt: Date;
     updatedAt: Date;
