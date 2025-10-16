@@ -93,7 +93,7 @@ const UserSchema: Schema<IUserDocument> = new Schema(
         values: Object.values(DRIVER_STATUS),
         message: "{VALUE} is not a valid driver status",
       },
-      default: DRIVER_STATUS.OFFLINE,
+      default: DRIVER_STATUS.AVAILABLE,
     },
   },
   {

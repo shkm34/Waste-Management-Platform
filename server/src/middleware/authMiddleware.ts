@@ -47,6 +47,8 @@ export const protect = async (
     }
 
     // Attach user to request object for downstream use
+    // this is authenticated user - must be used to grant access to resources
+    // a single source of truth for user info
     req.user = {
       _id: matchedUser._id.toString(),
       email: matchedUser.email,
@@ -65,7 +67,7 @@ export const protect = async (
 
 
 // Authorize middleware - Check if user has required role
-export const authorise = (allowedRoles: string[]) => {
+export const authorize = (allowedRoles: string[]) => {
   return (req: AuthRequest, _res: Response, next: NextFunction): void => {
     // Check if user exists on request (protect middleware should set this)
     if (!req.user) {

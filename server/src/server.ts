@@ -5,6 +5,7 @@ import { connectDatabase, setupDatabaseEvents } from "./config/database";
 import { PORT, CLIENT_URL, NODE_ENV } from "./config/constants";
 import { errorHandler } from './middleware/errorMiddleware';
 import authRoutes from './routes/authRoutes';
+import garbageRoutes from './routes/garbageRoutes';
 
 dotenv.config();
 
@@ -43,6 +44,8 @@ app.get("/api/health", (_req: Request, res: Response) => {
 
 // API route
 app.use('/api/auth', authRoutes);
+app.use('/api/garbage', garbageRoutes);
+
 
 app.post('/debug-body', (req, res) => {
   console.log('headers:', req.headers);
