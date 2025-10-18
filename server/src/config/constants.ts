@@ -15,7 +15,7 @@ export const GARBAGE_STATUS = {
   CLAIMED: "claimed",
   ASSIGNED: "assigned",
   READY_TO_PICK: "ready_to_pick",
-  PICKED_UP: "picked-up",
+  PICKED_UP: "picked_up",
   DELIVERED: "delivered",
   ACCEPTED: "accepted",
 } as const;

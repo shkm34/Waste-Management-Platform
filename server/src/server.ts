@@ -6,6 +6,7 @@ import { PORT, CLIENT_URL, NODE_ENV } from "./config/constants";
 import { errorHandler } from './middleware/errorMiddleware';
 import authRoutes from './routes/authRoutes';
 import garbageRoutes from './routes/garbageRoutes';
+import transactionRoutes from './routes/transactionRoutes';
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 // API route
 app.use('/api/auth', authRoutes);
 app.use('/api/garbage', garbageRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 
 app.post('/debug-body', (req, res) => {

@@ -4,8 +4,8 @@ import Garbage from "../models/Garbage";
 import User from "../models/User";
 import { calculatePrice } from "../utils/calculatePrice";
 import { AppError, asyncHandler } from "../middleware/errorMiddleware";
-import { DRIVER_STATUS, GARBAGE_STATUS, USER_ROLES } from "../config/constants";
-import mongoose from "mongoose";
+import { DRIVER_STATUS, GARBAGE_STATUS, TRANSACTION_TYPES, USER_ROLES } from "../config/constants";
+import Transaction from "../models/Transaction";
 
 // create new waste
 export const createGarbage = asyncHandler(
@@ -77,7 +77,7 @@ export const getMarketplace = asyncHandler(
 
 export const claimGarbage = asyncHandler(
     async (req: AuthRequest, res: Response, next: NextFunction) => {
-        const garbageId = new mongoose.Types.ObjectId(req.params.id);
+        const garbageId = req.params.id;
 
         // find garbage
         const selectedGarbage = await Garbage.findById(garbageId);
@@ -105,7 +105,7 @@ export const claimGarbage = asyncHandler(
         }
 
         // update garbage with dealer info
-        selectedGarbage.dealerId = new mongoose.Types.ObjectId(dealer?._id);
+        selectedGarbage.dealerId = dealer?._id as any;
         selectedGarbage.destinationLocation = dealer?.location;
         selectedGarbage.status = GARBAGE_STATUS.CLAIMED;
         selectedGarbage.claimedAt = new Date();
@@ -239,7 +239,7 @@ export const getDealerDeliveries = asyncHandler(
         res.status(200).json(
             {
                 success: true,
-                count: allDeliveries,
+                count: allDeliveries.length,
                 data: { deliveries: allDeliveries }
             }
         )
@@ -281,4 +281,210 @@ export const getGarbageById = asyncHandler(
         )
     }
 
+)
+
+// Private - Driver
+// Driver mark garbage Ready to pick
+export const markReadyToPick = asyncHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+        const garbageId = req.params.id
+
+        //find garbage
+        const garbage = await Garbage.findById(garbageId)
+
+        if (!garbage) {
+            return next(new AppError(404, 'Garbage Not Found'))
+        }
+
+        // verify is driver is assigned to this garbage
+        const driverId = req.user!._id
+        if (garbage.driverId?.toString() !== driverId) {
+            return next(new AppError(403, 'Not authorized - not assigned to this pickup'))
+        }
+
+        garbage.status = GARBAGE_STATUS.READY_TO_PICK
+        garbage.readyAt = new Date()
+        await garbage.save()
+
+        await garbage.populate([
+            { path: 'customerId', select: 'name phone location' },
+            { path: 'dealerId', select: 'name phone location' }
+        ])
+
+        res.status(200).json({
+            success: true,
+            message: 'Marked as ready to pick',
+            data: { garbage }
+        })
+
+    }
+)
+
+// Private - Driver
+// Driver mark garbage picked up
+export const markPickedUp = asyncHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+        const garbageId = req.params.id
+
+        //find garbage
+        const garbage = await Garbage.findById(garbageId)
+
+        if (!garbage) {
+            return next(new AppError(404, 'Garbage Not Found'))
+        }
+
+        // verify is driver is assigned to this garbage
+        const driverId = req.user!._id
+        if (garbage.driverId?.toString() !== driverId) {
+            return next(new AppError(403, 'Not authorized - not assigned to this pickup'))
+        }
+
+        // validate if current status is Ready to pick
+        if (garbage.status !== GARBAGE_STATUS.READY_TO_PICK) {
+            return next(new AppError(400, `Cannot mark picked up from status: ${garbage.status}`))
+        }
+
+        // update garbage status to picked up
+        garbage.status = GARBAGE_STATUS.PICKED_UP
+        garbage.pickedUpAt = new Date()
+        await garbage.save()
+
+        await garbage.populate([
+            { path: 'customerId', select: 'name phone location' },
+            { path: 'dealerId', select: 'name phone location' }
+        ])
+
+        res.status(200).json({
+            success: true,
+            message: 'Marked as picked up',
+            data: { garbage }
+        })
+
+    }
+)
+
+// Private - Driver
+// Driver mark garbage delivered
+export const markDelivered = asyncHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+        const garbageId = req.params.id
+
+        //find garbage
+        const garbage = await Garbage.findById(garbageId)
+
+        if (!garbage) {
+            return next(new AppError(404, 'Garbage Not Found'))
+        }
+
+        // verify is driver is assigned to this garbage
+        const driverId = req.user!._id
+        console.log(driverId)
+        console.log(garbage.driverId?.toString())
+        if (garbage.driverId?.toString() !== driverId) {
+            return next(new AppError(403, 'Not authorized - not assigned to this pickup'))
+        }
+
+        // validate if current status is picked up
+        if (garbage.status !== GARBAGE_STATUS.PICKED_UP) {
+            return next(new AppError(400, `Cannot mark delivered from status: ${garbage.status}`))
+        }
+
+        // update garbage status to delivered
+        garbage.status = GARBAGE_STATUS.DELIVERED
+        garbage.deliveredAt = new Date()
+        await garbage.save()
+
+        await garbage.populate([
+            { path: 'customerId', select: 'name phone location' },
+            { path: 'dealerId', select: 'name phone location' }
+        ])
+
+        res.status(200).json({
+            success: true,
+            message: 'Marked as delivered to dealer',
+            data: { garbage }
+        })
+
+    }
+)
+
+// private - Dealer
+// dealer accepts the delivered garbage 
+// and payment is executed 
+export const acceptDelivery = asyncHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+        const garbageId = req.params.id
+
+        const garbage = await Garbage.findById(garbageId)
+            .populate('customerId')
+            .populate('dealerId')
+
+        // if no garbage
+        if (!garbage) {
+            return next(new AppError(404, 'Garbage Not Found'))
+        }
+
+        // verify if dealer is related to this garbage
+        const dealerId = req.user!._id
+        
+        if (garbage.dealerId?._id.toString() !== dealerId) {
+            return next(new AppError(403, 'Not authorized - not assigned to this delivery'))
+        }
+
+        // validate if current status is delivered
+        if (garbage.status !== GARBAGE_STATUS.DELIVERED) {
+            return next(new AppError(400, `Cannot mark accepted from status: ${garbage.status}`))
+        }
+
+        // update garbage status to appected
+        garbage.status = GARBAGE_STATUS.ACCEPTED
+        garbage.acceptedAt = new Date()
+        await garbage.save()
+
+        // credit customer wallet
+        const customer = await User.findById(garbage.customerId)
+
+        if (!customer) {
+            return next(new AppError(404, 'Customer Not Found'))
+        }
+
+        customer.walletBalance = (customer.walletBalance || 0) + garbage.equivalentPrice
+        customer.save()
+
+        // create transaction record
+        const transaction = await Transaction.create({
+            customerId: garbage.customerId,
+            garbageId: garbage._id,
+            amount: garbage.equivalentPrice,
+            transactionType: TRANSACTION_TYPES.CREDIT,
+            description: `Credit for ${garbage.wasteType} delivery (${garbage.weight} kg)`
+        })
+
+        // update driver status to available
+        const driver = await User.findById(garbage.driverId)
+        if (driver) {
+            driver.driverStatus = DRIVER_STATUS.AVAILABLE
+            await driver.save()
+        }
+
+        res.status(200).json(
+            {
+                success: true,
+                message: 'Delivery accepted. Customer credited successfully.',
+                data: {
+                    garbage,
+                    transaction: {
+                        _id: transaction._id,
+                        amount: transaction.amount,
+                        type: transaction.transactionType,
+                        description: transaction.description,
+                    },
+                    customerNewBalance: customer.walletBalance,
+                },
+
+            }
+        )
+
+
+    }
 )
