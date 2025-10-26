@@ -21,10 +21,23 @@ export const register = asyncHandler(
       return next(new AppError(400, "Invalid role specified"));
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      $or: [
+        { email: email },
+        { phone: phone }
+      ]
+    });
+
     if (existingUser) {
-      return next(new AppError(400, "User already exists with this email"));
+      // Check 1: Did the user exist because of the email?
+      if (existingUser.email === email) {
+        return next(new AppError(400, "User already exists with this email"));
+      }
+
+      // Check 2: Did the user exist because of the phone?
+      if (existingUser.phone === phone) {
+        return next(new AppError(400, "User already exists with this phone"));
+      }
     }
 
     // Prepare user data

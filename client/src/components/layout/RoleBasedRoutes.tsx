@@ -1,16 +1,17 @@
 import { Navigate } from "react-router-dom"
 import { ROUTES, USER_ROLES } from "@/utils"
+import { useAuth } from "@/hooks/useAuth"
 
 interface RoleBasedRoutesProps {
     children: React.ReactNode
     allowedRoles: string[]
 }
 function RoleBasedRoutes({ children, allowedRoles }: RoleBasedRoutesProps) {
-    const token = localStorage.getItem('token')
-    const userRole = localStorage.getItem('userRole')
+    const { user, token, isAuthenticated } = useAuth()
+    const userRole = user?.role
 
-    // if no token redirect to login
-    if (!token) {
+    // if no token/not authenticated/ no user, redirect to login
+    if (!token || !isAuthenticated || !user) {
         return <Navigate to={ROUTES.LOGIN} replace />
     }
 

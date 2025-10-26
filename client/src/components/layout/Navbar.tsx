@@ -1,25 +1,26 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/utils';
 import { USER_ROLES } from '@/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 function Navbar() {
-  const token = localStorage.getItem('token')
-  const userRole = localStorage.getItem('userRole')
-  const userName = localStorage.getItem('userName')
+
+  const {token, user, isAuthenticated, logout} = useAuth()
+  const userRole = user?.role
+  const userName = user?.name
 
   const navigate = useNavigate()
+  
 
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userRole')
-    localStorage.removeItem('userName')
+  const handleLogout = async() => {
+    logout()
     navigate(ROUTES.LOGIN)
   }
 
   // Navigation items based on role
   const getNavItems = () => {
 
-    if (!token) return []
+    if (!token || !isAuthenticated || !user) return []
 
     switch (userRole) {
       case USER_ROLES.CUSTOMER:
@@ -59,7 +60,7 @@ function Navbar() {
             <span className='text-2xl font-bold text-blue-600'>Home</span>
           </Link>
 
-          {token ? (
+          {(token || isAuthenticated || user) ? (
             <div className='flex items-center space-x-6'>
               {navItems.map((item) =>
                 <Link
