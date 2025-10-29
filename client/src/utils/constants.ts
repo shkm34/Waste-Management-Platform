@@ -1,3 +1,5 @@
+import { WasteType } from "@/types";
+
 export const API_URL = import.meta.env.VITE_API_URL ||
  'http://localhost:5000/api';
 
@@ -12,6 +14,12 @@ export const WASTE_TYPE_LABELS: Record<string, string> = {
   plastic: 'Plastic',
   PET: 'PET Bottles',
 };
+
+export const PRICE_PER_KG: Record<WasteType, number> = {
+    ewaste: 39,
+    plastic: 25,
+    PET: 33,
+  };
 
 export const GARBAGE_STATUS = {
   AVAILABLE: 'available',
@@ -58,4 +66,5 @@ export const ROUTES = {
   DRIVER_DASHBOARD: '/driver/dashboard',
   DEALER_DASHBOARD: '/dealer/dashboard',
   DEALER_MARKETPLACE: '/dealer/marketplace',
+  GET_GARBAGE_BY_ID: '/garbage/:id',
 };

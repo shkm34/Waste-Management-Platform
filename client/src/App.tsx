@@ -8,6 +8,7 @@ import { DealerDashboard, Marketplace } from './pages/dealer';
 import ProtectedRoute from '@/components/layout/ProtectedRoutes';
 import RoleBasedRoute from '@/components/layout/RoleBasedRoutes';
 import { AuthProvider } from './context/AuthContext';
+import CreateWasteForm from './components/forms/CreateWasteForm';
 
 function App() {
   return (
@@ -31,6 +32,13 @@ function App() {
                   <CustomerDashboard />
                 </RoleBasedRoute>
               </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ROUTES.CUSTOMER_DASHBOARD + '/create'}
+            element={
+               <CreateWasteForm />
             }
           />
           <Route
