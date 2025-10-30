@@ -9,6 +9,7 @@ import ProtectedRoute from '@/components/layout/ProtectedRoutes';
 import RoleBasedRoute from '@/components/layout/RoleBasedRoutes';
 import { AuthProvider } from './context/AuthContext';
 import CreateWasteForm from './components/forms/CreateWasteForm';
+import GarbageDetails from './components/common/GarbageDetails';
 
 function App() {
   return (
@@ -38,7 +39,12 @@ function App() {
           <Route
             path={ROUTES.CUSTOMER_DASHBOARD + '/create'}
             element={
-               <CreateWasteForm />
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['customer']}>
+                   <CreateWasteForm />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+              
             }
           />
           <Route
@@ -62,6 +68,9 @@ function App() {
             }
           />
           <Route path={ROUTES.DEALER_MARKETPLACE} element={<Marketplace />} />
+
+          // Common routes
+          <Route path={ROUTES.GET_GARBAGE_BY_ID} element={<GarbageDetails/>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

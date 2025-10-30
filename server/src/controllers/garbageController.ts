@@ -262,15 +262,23 @@ export const getGarbageById = asyncHandler(
         }
 
         // check authorization - if user has authority to see garbage
-        // users can see only garbage they are involved in
+        // Dealer has authority to see details of garbage of his types before claiming
+        // but customer, driver can see details of garbage only if they are related to it
+        
         const userId = req.user!._id
-        const isAuthorized =
-            garbage.customerId?._id.toString() === userId ||
-            garbage.dealerId?._id.toString() === userId ||
-            garbage.driverId?._id.toString() === userId
+        let isAuthorized = false
+
+        if(req.user!.role === USER_ROLES.DEALER){
+            isAuthorized = true
+        } else{
+            isAuthorized =
+                garbage.customerId?._id.toString() === userId ||
+                //garbage.dealerId?._id.toString() === userId ||
+                garbage.driverId?._id.toString() === userId
+        }
 
         if (!isAuthorized) {
-            return next(new AppError(403, 'Not aUthorized to view this garbage'))
+            return next(new AppError(403, 'Not authorized to view this garbage'))
         }
 
         res.status(200).json(

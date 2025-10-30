@@ -41,7 +41,7 @@ function Navbar() {
       case USER_ROLES.DEALER:
         return [
           { label: 'Dashboard', path: ROUTES.DEALER_DASHBOARD },
-          { label: 'MarketPlace', path: ROUTES.DEALER_DASHBOARD + '/marketplace' },
+          { label: 'MarketPlace', path: ROUTES.DEALER_MARKETPLACE},
           { label: 'Incoming', path: ROUTES.DEALER_DASHBOARD + '/incomings' },
           { label: 'Inventory', path: ROUTES.DEALER_DASHBOARD + '/inventory' },
         ]

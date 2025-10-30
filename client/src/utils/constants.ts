@@ -65,6 +65,7 @@ export const ROUTES = {
   CUSTOMER_DASHBOARD: '/customer/dashboard',
   DRIVER_DASHBOARD: '/driver/dashboard',
   DEALER_DASHBOARD: '/dealer/dashboard',
-  DEALER_MARKETPLACE: '/dealer/marketplace',
+  DEALER_MARKETPLACE: '/dealer/dashboard/marketplace',
   GET_GARBAGE_BY_ID: '/garbage/:id',
+  GET_GARBAGE_PATH: (id: string) => `/garbage/${id}`
 };
