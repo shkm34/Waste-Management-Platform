@@ -1,16 +1,16 @@
-Waste Management Platform
+# Waste Management Platform
 
 A three-role marketplace platform connecting waste generators (Customers), processing facilities (Dealers), and transport logistics (Drivers).
 
 This project aims to streamline the waste collection process, creating a simple, efficient marketplace for waste, and incentivizing recycling and proper disposal through a digital credits system.
 
-Key Features
+# Key Features
 
 Secure Authentication: JWT-based auth for all users, with secure password hashing (bcrypt).
 
 Role-Based Access Control: The application provides a unique UI and set of permissions for each role:
 
-Customer Role:
+# Customer Role:
 
 Create and schedule new waste pickup requests.
 
@@ -18,7 +18,7 @@ Track the real-time status of their pickups (e.g., "Available," "Claimed," "Pick
 
 Receive wallet credits upon successful delivery confirmation.
 
-Dealer Role:
+# Dealer Role:
 
 Browse a live marketplace of available waste pickups, filtered by type (e.g., "Plastic," "Organic," "Electronic").
 
@@ -26,7 +26,7 @@ Claim waste pickups that match their facility's capabilities.
 
 Confirm delivery to close the loop and trigger credit transfer.
 
-Driver Role:
+# Driver Role:
 
 View a dashboard of assigned pickup and delivery jobs.
 
@@ -34,11 +34,11 @@ Update job status in real-time.
 
 View customer and dealer location details for logistics.
 
-Tech Stack
+# Tech Stack
 
 This project is a full-stack MERN application built with modern, type-safe tools.
 
-Frontend:
+## Frontend:
 
 React (with Vite): A high-performance, modern React build tool.
 
@@ -50,7 +50,7 @@ Axios: For promise-based API communication.
 
 React Hook Form: For efficient and performant form validation.
 
-Backend:
+## Backend:
 
 Node.js: JavaScript runtime environment.
 
@@ -58,7 +58,7 @@ Express.js: Minimalist web framework for building the REST API.
 
 TypeScript: For type safety on the server.
 
-Database:
+## Database:
 
 MongoDB: NoSQL database for flexible data storage.
 
@@ -68,7 +68,7 @@ Getting Started
 
 Follow these instructions to get a local copy of the project up and running for development and testing.
 
-Prerequisites
+# Prerequisites
 
 You will need the following tools installed on your machine:
 
@@ -164,5 +164,3 @@ Future Roadmap
 [ ] Develop a comprehensive Admin Dashboard for platform management.
 
 This README was generated and enhanced from a user-provided template.
-
-
