@@ -1,7 +1,8 @@
 import { WASTE_TYPE_LABELS, ROUTES } from "@/utils";
 import StatusBadge from "@/components/common/StatusBadge";
+import ConfirmModal from "@/components/common/ConfirmModal";
 import { formatCurrency, formatDateTime } from "@/utils";
-import { getMarketplace } from "@/services/dealerService";
+import { claimWaste, getMarketplace } from "@/services/dealerService";
 import { useEffect, useState } from "react";
 import { Garbage } from "@/types";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +10,7 @@ function Marketplace() {
   const [availableWaste, setAvailableWaste] = useState<Garbage[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
   // load all waste on mount
@@ -26,6 +28,38 @@ function Marketplace() {
       setError(error.response?.data?.error || "Failed to load marketplace");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const startAction = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setOpen(true);
+  };
+
+  //
+  const handleConfirm = async (id: string) => {
+    // simulate async action
+    try {
+      setLoading(true);
+      await claimWaste(id);
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.error || "Failed to claim waste";
+
+      if (errorMsg.includes("No drivers available")) {
+        setError(
+          "⚠️ No drivers available at the moment. Please try again later or contact support."
+        );
+      } else if (errorMsg.includes("already been claimed")) {
+        setError("This waste has already been claimed by another dealer.");
+        await fetchMarketplace(); // Refresh to remove from list
+      } else if (errorMsg.includes("not accept this waste type")) {
+        setError("Your facility is not configured to accept this waste type.");
+      } else {
+        setError(errorMsg);
+      }
+    } finally {
+      setLoading(false);
+      setOpen(false);
     }
   };
 
@@ -89,7 +123,7 @@ function Marketplace() {
                   <div
                     onClick={() => handleClick(waste._id)}
                     key={waste._id}
-                    className="bg-white rounded-lg shadow-md hover:shadow-purple-400 cursor-pointer transition"
+                    className="bg-white rounded-lg shadow-md hover:shadow-purple-400r transition"
                   >
                     <div className="p-6">
                       {/* Header */}
@@ -128,6 +162,28 @@ function Marketplace() {
                       </div>
 
                       {/* Action Button */}
+                      <div className="flex items-center justify-center">
+                        <button
+                          onClick={startAction}
+                          className=" m-auto bg-purple-500 hover:bg-purple-600 text-white py-2 px-6 rounded-xl cursor-pointer"
+                        >
+                          Claim
+                        </button>
+                      </div>
+
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <ConfirmModal
+                          open={open}
+                          title="Please Confirm"
+                          message="Do you want to confirm this action?"
+                          confirmText="Yes, confirm"
+                          cancelText="No, cancel"
+                          destructive={false}
+                          loading={loading}
+                          onConfirm={() => handleConfirm(waste._id)}
+                          onCancel={() => setOpen(false)}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
