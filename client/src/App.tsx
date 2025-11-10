@@ -2,7 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { ROUTES } from './utils';
 import Navbar from './components/layout/Navbar';
 import { Login, Register } from './pages/auth';
-import { CustomerDashboard } from './pages/customer';
+import { CustomerDashboard, WalletTransaction } from './pages/customer';
 import { DriverDashboard } from './pages/driver';
 import { DealerDashboard, Marketplace } from './pages/dealer';
 import ProtectedRoute from '@/components/layout/ProtectedRoutes';
@@ -47,6 +47,19 @@ function App() {
               
             }
           />
+
+          <Route
+            path={ROUTES.CUSTOMER_DASHBOARD + '/wallet'}
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['customer']}>
+                   <WalletTransaction />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+              
+            }
+          />
+
           <Route
             path={ROUTES.DRIVER_DASHBOARD}
             element={

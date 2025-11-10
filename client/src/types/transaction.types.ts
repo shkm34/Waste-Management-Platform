@@ -1,9 +1,9 @@
 export interface Transaction {
     _id: string,
     customerId: string,
-    garbageId: string | {
+    garbageId: {
         _id: string;
-        type: string;
+        wasteType: string;
         weight: number;
         status: string;
     },

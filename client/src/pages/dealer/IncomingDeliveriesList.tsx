@@ -12,9 +12,10 @@ import { acceptDelivery } from "@/services/dealerService";
 
 interface IncomingDeliveriesListProps {
   deliveries: Garbage[];
+  onAccepted?: () => void; // notify parent to refresh
 }
 
-function IncomingDeliveriesList({ deliveries }: IncomingDeliveriesListProps) {
+function IncomingDeliveriesList({ deliveries, onAccepted }: IncomingDeliveriesListProps) {
   const [acceptingId, setAcceptingId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<string>("");
@@ -44,14 +45,22 @@ function IncomingDeliveriesList({ deliveries }: IncomingDeliveriesListProps) {
       const result = await acceptDelivery(garbageId);
       setSuccess(
         `Delivery accepted! Customer has been credited ${formatCurrency(
-          result.data.transaction.amount
+          result.customerNewBalance
         )}.`
       );
+
+       // close modal and clear selection
+     setOpen(false);
+     setAcceptingId("");
+
+      // inform parent to refresh
+     onAccepted?.();
 
       // Clear success message after 5 seconds
       setTimeout(() => setSuccess(""), 5000);
     } catch (error: any) {
-      setError(error.response?.data?.error || "Failed to accept delivery");
+      console.error("Accept Delivery Error:", error);
+      setError(error.message || "Failed to accept delivery");
     } finally {
       setLoading(false);
     }
@@ -105,7 +114,7 @@ function IncomingDeliveriesList({ deliveries }: IncomingDeliveriesListProps) {
         </div>
       ) : (
         <>
-          {deliveries.map((delivery) => (
+          {deliveries.toReversed().map((delivery) => (
             <div
               key={delivery._id}
               className="bg-white hover:bg-indigo-100 rounded-lg shadow-lg overflow-hidden"

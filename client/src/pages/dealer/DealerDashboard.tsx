@@ -11,7 +11,7 @@ function DealerDashboard() {
   const [error, setError] = useState<string>('');
 
   const { user } = useAuth();
-
+console.log('Dealerdashboard is rendering');
   const fetchDeliveries = async () => {
     try {
       setLoading(true);
@@ -101,7 +101,7 @@ function DealerDashboard() {
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             Recent Deliveries
           </h2>
-          <IncomingDeliveriesList deliveries={incomingDeliveries} />
+          <IncomingDeliveriesList deliveries={incomingDeliveries} onAccepted={fetchDeliveries}/>
         </div>
       </div>
     </div>

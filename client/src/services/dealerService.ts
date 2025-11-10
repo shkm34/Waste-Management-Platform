@@ -1,5 +1,5 @@
 import apiClient from "./api";
-import { Garbage, ApiResponse, ApiResponseClaimWaste } from "@/types";
+import { Garbage, ApiResponse, ApiResponseClaimWaste, ApiResponseAcceptDelivery, AcceptDeliveryData } from "@/types";
 
 
 //get marketplace - available waste for dealer
@@ -27,11 +27,18 @@ export const getIncomingDeliveries = async(): Promise<Garbage[]>=>{
 }
 
 // Accept delivered waste
-export const acceptDelivery = async(garbageId: string): Promise<any>=>{
-    const response = await apiClient.post<ApiResponseClaimWaste>(
+export const acceptDelivery = async(garbageId: string): Promise<AcceptDeliveryData>=>{
+    const response = await apiClient.patch<ApiResponseAcceptDelivery>(
         `/garbage/${garbageId}/accept`
     )
-    return response.data.data
+    const apiData = response.data;
+    // Check for success and existence of data
+  if (apiData.success && apiData.data) {
+    return apiData.data; // Return the data on success
+  } else {
+    // Throw error if success is false or data is missing
+    throw new Error(apiData.message || apiData.error || 'An unknown error occurred.');
+  }
 }
 
 

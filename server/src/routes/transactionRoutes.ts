@@ -3,7 +3,7 @@ import express from 'express';
 import {
     getMyTransactions,
     getWalletBalance,
-} from '../controllers/transactionComtroller';
+} from '../controllers/transactionController';
 import { protect, authorize } from '../middleware/authMiddleware';
 import { USER_ROLES } from '../config/constants';
 

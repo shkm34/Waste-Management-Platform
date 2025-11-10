@@ -1,5 +1,6 @@
 import { Garbage } from "./garbage.types"
 import { User } from "./user.types"
+import { GARBAGE_STATUS } from "@/utils"
 
 export interface ApiResponse<T> {
   success: boolean
@@ -22,19 +23,22 @@ export interface ApiResponseClaimWaste {
   error?: string
 }
 
+// shape of the data on a successful response
+export interface AcceptDeliveryData {
+  garbage: Garbage; 
+  transaction: {
+    _id: string;
+    amount: number;
+    type: 'credit' | 'debit';
+    description: string;
+  };
+  customerNewBalance: number;
+}
+
 export interface ApiResponseAcceptDelivery {
   success: boolean
   message?: string
-  data?: {
-    garbage: Garbage,
-    transaction: {
-      _id: string,
-      amount: number,
-      type: 'credit' | 'debit',
-      description: string
-    },
-    customerNewBalance: number,
-  },
+  data?: AcceptDeliveryData,
   error?: string
 }
 
@@ -63,3 +67,8 @@ export interface AuthResponse {
     token: string;
   }
 }
+
+export type DriverGarbageAction =
+  | typeof GARBAGE_STATUS.READY_TO_PICK
+  | typeof GARBAGE_STATUS.PICKED_UP
+  | typeof GARBAGE_STATUS.DELIVERED;
