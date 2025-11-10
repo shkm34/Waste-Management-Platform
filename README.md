@@ -151,16 +151,5 @@ Project Status
 
 🚧 In Development - MVP Phase
 
-This project is currently in active development. The core features for the MVP (Minimum Viable Product) are being built.
 
-Future Roadmap
 
-[ ] Implement a live chat system for communication between Drivers and Dealers.
-
-[ ] Integrate a mapping service for driver route optimization.
-
-[ ] Build a payment gateway for wallet credit cash-out.
-
-[ ] Develop a comprehensive Admin Dashboard for platform management.
-
-This README was generated and enhanced from a user-provided template.
