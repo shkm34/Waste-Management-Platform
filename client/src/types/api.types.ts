@@ -59,6 +59,12 @@ export interface PaginatedResponse<T> {
   };
 }
 
+// for garbage deletion 
+export interface SimpleResponse {
+  success: boolean;
+  message?: string;
+}
+
 export interface AuthResponse {
   success: boolean;
   message?: string;

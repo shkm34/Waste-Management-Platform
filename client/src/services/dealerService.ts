@@ -1,5 +1,5 @@
 import apiClient from "./api";
-import { Garbage, ApiResponse, ApiResponseClaimWaste, ApiResponseAcceptDelivery, AcceptDeliveryData } from "@/types";
+import { Garbage, ApiResponse, ApiResponseClaimWaste, ApiResponseAcceptDelivery, AcceptDeliveryData, SimpleResponse } from "@/types";
 
 
 //get marketplace - available waste for dealer
@@ -16,6 +16,14 @@ export const claimWaste = async(garbageId: string): Promise<any>=>{
         `/garbage/${garbageId}/claim`
     )
     return response.data.data
+}
+
+// dealer unclaims waste
+export const unclaimWaste = async(garbageId: string): Promise<SimpleResponse>=>{
+    const response = await apiClient.patch<SimpleResponse>(
+        `/garbage/${garbageId}/unclaim`
+    )
+    return response.data
 }
 
 // get incoming waste for dealer

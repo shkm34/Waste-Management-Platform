@@ -1,5 +1,26 @@
 import apiClient from "./api";
-import { Garbage, ApiResponse } from "../types";
+import { Garbage, ApiResponse, SimpleResponse } from "../types";
+
+/**
+ * Assign a garbage to driver
+ */
+export const assignJob = async (): Promise<Garbage> => {
+  const response = await apiClient.post<ApiResponse<{ assignedJob: Garbage }>>(
+    "/garbage/assign-job"
+  );
+  return response.data.data!.assignedJob;
+};
+
+/**
+ * Cancel assigned job
+ */
+export const cancelJob = async (garbageId: string): Promise<SimpleResponse> => {
+  const response = await apiClient.patch<SimpleResponse>(
+    `/garbage/${garbageId}/cancel-job`
+  );
+  return response.data;
+}
+
 
 /**
  * Get driver's assigned pickups

@@ -5,6 +5,7 @@ import {
     ApiResponse,
     PaginatedResponse,
     Transaction,
+    SimpleResponse
 } from "@/types";
 
 // Create new waste listing
@@ -19,7 +20,12 @@ export const createGarbage = async (
     return response.data.data!.garbage;
 };
 
+// delete created garbage
+export const deleteGarbage = async (garbageId: string): Promise<SimpleResponse> =>{
+    const response = await apiClient.delete<SimpleResponse>(`/garbage/${garbageId}/delete`)
 
+    return response.data
+}
 
 // get customer waste listing
 export const getMyWaste = async (): Promise<Garbage[]> => {
