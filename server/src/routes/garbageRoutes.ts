@@ -12,6 +12,10 @@ import {
     markPickedUp,
     markDelivered,
     acceptDelivery,
+    deleteGarbage,
+    unclaimGarbage,
+    assignJob,
+    cancelJob
 } from "../controllers/garbageController";
 import { protect, authorize } from "../middleware/authMiddleware";
 
@@ -20,15 +24,19 @@ const router = express.Router();
 // customer routes
 router.post("/create", protect, authorize([USER_ROLES.CUSTOMER]), createGarbage);
 router.get("/my-waste", protect, authorize([USER_ROLES.CUSTOMER]), getMyGarbage);
+router.delete("/:id/delete", protect, authorize([USER_ROLES.CUSTOMER]), deleteGarbage);
 
 // Dealer routes
 router.get("/marketplace", protect, authorize([USER_ROLES.DEALER]), getMarketplace);
 router.get("/incoming", protect, authorize([USER_ROLES.DEALER]), getDealerDeliveries);
 router.post("/:id/claim", protect, authorize([USER_ROLES.DEALER]), claimGarbage);
+router.patch("/:id/unclaim", protect, authorize([USER_ROLES.DEALER]), unclaimGarbage);
 router.patch("/:id/accept", protect, authorize([USER_ROLES.DEALER]), acceptDelivery);
 
 // Driver routes
 router.get("/my-assignments", protect, authorize([USER_ROLES.DRIVER]), getMyAssignments);
+router.post("/assign-job", protect, authorize([USER_ROLES.DRIVER]), assignJob);
+router.patch("/:id/cancel-job", protect, authorize([USER_ROLES.DRIVER]), cancelJob);
 router.patch("/:id/ready-to-pick", protect, authorize([USER_ROLES.DRIVER]), markReadyToPick);
 router.patch("/:id/picked-up", protect, authorize([USER_ROLES.DRIVER]), markPickedUp);
 router.patch("/:id/delivered", protect, authorize([USER_ROLES.DRIVER]), markDelivered)

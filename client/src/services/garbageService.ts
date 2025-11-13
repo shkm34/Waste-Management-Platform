@@ -19,6 +19,8 @@ export const createGarbage = async (
     return response.data.data!.garbage;
 };
 
+
+
 // get customer waste listing
 export const getMyWaste = async (): Promise<Garbage[]> => {
     const response = await apiClient.get<ApiResponse<{ garbage: Garbage[] }>>(

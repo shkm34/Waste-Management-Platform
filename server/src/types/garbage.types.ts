@@ -12,22 +12,22 @@ export interface IGarbage {
     equivalentPrice: number
 
     customerId: Types.ObjectId
-    driverId: Types.ObjectId
-    dealerId: Types.ObjectId
+    driverId: Types.ObjectId | null
+    dealerId: Types.ObjectId | null
 
     status: 'available' | 'claimed' | 'assigned' | 'ready_to_pick' | 'picked_up' | 'delivered' | 'accepted'
 
     originLocation: IGarbageLocation
-    destinationLocation?: IGarbageLocation
+    destinationLocation?: IGarbageLocation | null
 
     scheduledPickupDate: Date
 
-    claimedAt?: Date
-    assignedAt?: Date
-    readyAt?: Date
-    pickedUpAt?: Date
-    deliveredAt?: Date
-    acceptedAt?: Date
+    claimedAt?: Date | null
+    assignedAt?: Date | null
+    readyAt?: Date | null
+    pickedUpAt?: Date | null
+    deliveredAt?: Date | null
+    acceptedAt?: Date | null
 }
 
 export interface IGarbageDocument extends IGarbage, Document {
