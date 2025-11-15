@@ -1,14 +1,15 @@
-import { formatDate, formatCurrency, WASTE_TYPE_LABELS } from "../../utils";
+import { formatDate, formatCurrency, WASTE_TYPE_LABELS, GARBAGE_STATUS } from "../../utils";
 import StatusBadge from "./StatusBadge";
 import type { Garbage } from "../../types";
 import {useNavigate } from "react-router-dom";
 import { ROUTES } from "../../utils";
-import { getGarbageById } from "@/services/garbageService";
+import {getGarbageById } from "@/services/garbageService";
 
 type WasteTableProps ={
     waste: Garbage[]
+    onCancelWaste: (id: string) => void
 }
-function WasteTable({waste}: WasteTableProps) {
+function WasteTable({waste, onCancelWaste}: WasteTableProps) {
 
     const navigate = useNavigate()
     const onViewDetails = (id: string) => {
@@ -79,6 +80,7 @@ function WasteTable({waste}: WasteTableProps) {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    
                       {onViewDetails && (
                         <button
                           onClick={() => onViewDetails(item._id)}
@@ -87,6 +89,17 @@ function WasteTable({waste}: WasteTableProps) {
                           View Details
                         </button>
                       )}
+
+                      {
+                      item.status === GARBAGE_STATUS.AVAILABLE && (
+                        <button
+                          onClick={() => onCancelWaste(item._id)}
+                          className="text-red-600 hover:text-red-900 font-medium ml-4"
+                        >
+                          Cancel
+                        </button>
+                      )
+                    }
                     </td>
                   </tr>
                 ))}

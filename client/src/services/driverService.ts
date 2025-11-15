@@ -4,11 +4,12 @@ import { Garbage, ApiResponse, SimpleResponse } from "../types";
 /**
  * Assign a garbage to driver
  */
-export const assignJob = async (): Promise<Garbage> => {
-  const response = await apiClient.post<ApiResponse<{ assignedJob: Garbage }>>(
+export const assignJob = async (): Promise<SimpleResponse> => {
+  const response = await apiClient.post<SimpleResponse>(
     "/garbage/assign-job"
   );
-  return response.data.data!.assignedJob;
+  console.log("API Response:", response.data.data);
+  return response.data!;
 };
 
 /**
@@ -30,7 +31,6 @@ export const getMyAssignments = async (): Promise<Garbage[]> => {
   const response = await apiClient.get<ApiResponse<{ assignedGarbage: Garbage[] }>>(
     "/garbage/my-assignments"
   );
-  console.log("API Response:", response.data);
   return response.data.data!.assignedGarbage;
 };
 

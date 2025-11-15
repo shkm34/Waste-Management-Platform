@@ -1,16 +1,21 @@
-import { getMyAssignments, markDelivered, markPickedUp, markReadyToPick } from "@/services/driverService";
+import {
+  getMyAssignments,
+  markDelivered,
+  markPickedUp,
+  markReadyToPick,
+  assignJob,
+} from "@/services/driverService";
 import { Garbage, DriverGarbageAction } from "@/types";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AssignmentCard from "./AssignmentCard";
 
-
 function DriverDashboard() {
   const [assignments, setAssignments] = useState<Garbage[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [updatingId, setUpdatingId] = useState<string| null>(null)
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
-  const { user} = useAuth();
+  const { user } = useAuth();
   const [success, setSuccess] = useState<string>("");
   // Fetch all assignments on mount
   useEffect(() => {
@@ -31,47 +36,66 @@ function DriverDashboard() {
     }
   };
 
-  const handleStatusUpdate = async (garbageId: string, action: DriverGarbageAction) =>{
-    try{
-        setUpdatingId(garbageId)
-        setError('')
-        setSuccess('')
-        let result
-        switch(action) {
-            case 'ready_to_pick':
-                result = await markReadyToPick(garbageId)
-                setSuccess('Marked as ready to pick!')
-                break
-    
-            case 'picked_up':
-                result = await markPickedUp(garbageId)
-                 setSuccess('Marked as picked up!')
-                break
-                
-            case 'delivered':
-                result = await markDelivered(garbageId) 
-                 setSuccess('Marked as delivered! Waiting for dealer acceptance.')  
-                break  
-        }
+  const assignGarbage = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-         fetchAssignments()
-    
-        // Clear success message after 4 seconds
-          setTimeout(() => setSuccess(''), 4000);
+      const result = await assignJob();
+      setSuccess(result.message ? result.message : "Job assigned!");
+      fetchAssignments();
+      setTimeout(() => setSuccess(""), 4000);
     } catch (error: any) {
-        setError(error.response?.data?.error || 'Failed to update status')
+      console.log(error);
+      setError(error.response?.data?.error || "Failed to assign job");
     } finally {
-        setUpdatingId(null);
+      setLoading(false);
     }
+  };
+
+  const handleStatusUpdate = async (
+    garbageId: string,
+    action: DriverGarbageAction
+  ) => {
+    try {
+      setUpdatingId(garbageId);
+      setError("");
+      setSuccess("");
     
-  }
+      switch (action) {
+        case "ready_to_pick":
+          await markReadyToPick(garbageId);
+          setSuccess("Marked as ready to pick!");
+          break;
+
+        case "picked_up":
+          await markPickedUp(garbageId);
+          setSuccess("Marked as picked up!");
+          break;
+
+        case "delivered":
+          await markDelivered(garbageId);
+          setSuccess("Marked as delivered! Waiting for dealer acceptance.");
+          break;
+      }
+
+      fetchAssignments();
+
+      // Clear success message after 4 seconds
+      setTimeout(() => setSuccess(""), 4000);
+    } catch (error: any) {
+      setError(error.response?.data?.error || "Failed to update status");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   // Calculate statistics
   const stats = {
-    active: assignments?.filter(a =>
-      ['assigned', 'ready_to_pick', 'picked_up'].includes(a.status)
+    active: assignments?.filter((a) =>
+      ["assigned", "ready_to_pick", "picked_up"].includes(a.status)
     ).length,
-    delivered: assignments?.filter(a => a.status === 'delivered').length,
+    delivered: assignments?.filter((a) => a.status === "delivered").length,
     total: assignments?.length,
   };
 
@@ -169,6 +193,16 @@ function DriverDashboard() {
                   {user?.driverStatus === "available" ? "Available" : "Busy"}
                 </span>
               </p>
+              <div>
+                {user?.driverStatus === "available" && (
+                  <button
+                    className="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
+                    onClick={assignGarbage}
+                  >
+                    Assign Job
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2">

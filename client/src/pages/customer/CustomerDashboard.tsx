@@ -3,6 +3,7 @@ import WasteTable from "@/components/common/WasteTable";
 import { Garbage } from "@/types";
 import { useEffect, useState } from "react";
 import { GARBAGE_STATUS } from "@/utils";
+import { deleteGarbage } from "@/services/garbageService";
 function CustomerDashboard() {
   const [garbage, setGarbage] = useState<Garbage[]>([]);
   const [walletBalance, setWalletBalance] = useState<number>(0);
@@ -23,12 +24,24 @@ function CustomerDashboard() {
       setGarbage(wasteData);
       setWalletBalance(walletData);
     } catch (error) {
-      console.error("Error fetching data:", error);
       setError("Failed to fetch data");
     } finally {
       setLoading(false);
     }
   };
+
+  const onCancelWaste = async (id: string) => {
+        try {
+          setLoading(true)
+          setError("")
+          await deleteGarbage(id);
+          fetchData();
+        } catch (error: any) {
+          setError(error.response.data.error || "Error deleting waste")
+        } finally {
+          setLoading(false);
+        }
+    }
 
   const stats = {
     totalWasteCreated: garbage.length,
@@ -86,7 +99,7 @@ function CustomerDashboard() {
                 Recent Waste Listings
               </h2>
 
-              <WasteTable waste={garbage}></WasteTable>
+              <WasteTable waste={garbage} onCancelWaste={onCancelWaste}></WasteTable>
             </div>
           </div>
         </div>

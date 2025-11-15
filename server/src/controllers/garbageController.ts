@@ -140,7 +140,7 @@ export const assignJob = asyncHandler(
 
         // find oldest jobs in 'needs a driver queue' (FIFO)
         const nextJob = await Garbage.findOne({
-            status: GARBAGE_STATUS.AVAILABLE
+            status: GARBAGE_STATUS.CLAIMED
         }).sort({ claimedAt: 1 }) // Ascending (oldest first)
 
         if (!nextJob) {
@@ -166,6 +166,7 @@ export const assignJob = asyncHandler(
         // populate for response
         await nextJob.populate([
             { path: "customerId", select: "name email phone location" },
+            { path: "driverId", select: "name email phone location" },
             { path: "dealerId", select: "name email phone location" },
         ]);
 
@@ -346,6 +347,12 @@ export const markDelivered = asyncHandler(
     async (req: AuthRequest, res: Response, next: NextFunction) => {
         const garbageId = req.params.id;
 
+         const driver = await User.findById(req.user!._id);
+
+        if (!driver) {
+            return next(new AppError(404, "Driver Not Found"));
+        }
+
         //find garbage
         const garbage = await Garbage.findById(garbageId);
 
@@ -355,8 +362,6 @@ export const markDelivered = asyncHandler(
 
         // verify is driver is assigned to this garbage
         const driverId = req.user!._id;
-        console.log(driverId);
-        console.log(garbage.driverId?.toString());
         if (garbage.driverId?.toString() !== driverId) {
             return next(
                 new AppError(403, "Not authorized - not assigned to this pickup")
@@ -377,6 +382,10 @@ export const markDelivered = asyncHandler(
         garbage.status = GARBAGE_STATUS.DELIVERED;
         garbage.deliveredAt = new Date();
         await garbage.save();
+
+        // update driver status to available
+        driver.driverStatus = DRIVER_STATUS.AVAILABLE;
+        await driver.save();
 
         await garbage.populate([
             { path: "customerId", select: "name phone location" },
@@ -463,40 +472,11 @@ export const claimGarbage = asyncHandler(
         selectedGarbage.status = GARBAGE_STATUS.CLAIMED;
         selectedGarbage.claimedAt = new Date();
 
-        // assign driver if any available
-        const availableDriver = await User.find({
-            role: USER_ROLES.DRIVER,
-            driverStatus: DRIVER_STATUS.AVAILABLE,
-        });
-
-        if (availableDriver.length === 0) {
-            return next(
-                new AppError(
-                    503,
-                    "No drivers available at the moment. Please try again later"
-                )
-            );
-        }
-
-        // select a random driver
-        const randomIndex = Math.floor(Math.random() * availableDriver.length);
-        const selectedDriver = availableDriver[randomIndex];
-
-        // Assign driver
-        selectedGarbage.driverId = selectedDriver._id as any;
-        selectedGarbage.status = GARBAGE_STATUS.ASSIGNED;
-        selectedGarbage.assignedAt = new Date();
-
-        // Update driver status to busy
-        selectedDriver.driverStatus = DRIVER_STATUS.BUSY;
-        await selectedDriver.save();
-
         await selectedGarbage.save();
 
         // populate the ObjectId field details
         await selectedGarbage.populate([
-            { path: "customerId", select: "name email phone location" },
-            { path: "driverId", select: "name email phone" },
+            { path: "customerId", select: "name email phone location" }
         ]);
 
         res.status(200).json({
@@ -504,11 +484,6 @@ export const claimGarbage = asyncHandler(
             message: "Waste claimed successfully. Driver assigned.",
             data: {
                 selectedGarbage,
-                assignedDriver: {
-                    _id: selectedDriver._id,
-                    name: selectedDriver.name,
-                    phone: selectedDriver.phone,
-                },
             },
         });
     }
