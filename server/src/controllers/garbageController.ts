@@ -675,6 +675,7 @@ export const getDealerDeliveries = asyncHandler(
             dealerId: myId,
             status: {
                 $in: [
+                    GARBAGE_STATUS.CLAIMED,
                     GARBAGE_STATUS.ASSIGNED,
                     GARBAGE_STATUS.READY_TO_PICK,
                     GARBAGE_STATUS.PICKED_UP,

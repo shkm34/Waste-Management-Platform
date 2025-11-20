@@ -4,6 +4,7 @@ import {
   formatDateTime,
   WASTE_TYPE_LABELS,
   STATUS_LABELS,
+  GARBAGE_STATUS,
 } from "../../utils";
 import StatusBadge from "../../components/common/StatusBadge";
 import ConfirmModal from "@/components/common/ConfirmModal";
@@ -15,7 +16,10 @@ interface IncomingDeliveriesListProps {
   onAccepted?: () => void; // notify parent to refresh
 }
 
-function IncomingDeliveriesList({ deliveries, onAccepted }: IncomingDeliveriesListProps) {
+function IncomingDeliveriesList({
+  deliveries,
+  onAccepted,
+}: IncomingDeliveriesListProps) {
   const [acceptingId, setAcceptingId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<string>("");
@@ -49,12 +53,12 @@ function IncomingDeliveriesList({ deliveries, onAccepted }: IncomingDeliveriesLi
         )}.`
       );
 
-       // close modal and clear selection
-     setOpen(false);
-     setAcceptingId("");
+      // close modal and clear selection
+      setOpen(false);
+      setAcceptingId("");
 
       // inform parent to refresh
-     onAccepted?.();
+      onAccepted?.();
 
       // Clear success message after 5 seconds
       setTimeout(() => setSuccess(""), 5000);
@@ -66,7 +70,11 @@ function IncomingDeliveriesList({ deliveries, onAccepted }: IncomingDeliveriesLi
     }
   };
 
-  if (deliveries.length === 0) {
+  const claimedDeliveriesLength = deliveries.filter(
+    (d) => d.status === GARBAGE_STATUS.CLAIMED
+  ).length;
+
+  if (deliveries.length - claimedDeliveriesLength === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-12 text-center">
         <div className="text-gray-400 mb-4">
@@ -114,154 +122,170 @@ function IncomingDeliveriesList({ deliveries, onAccepted }: IncomingDeliveriesLi
         </div>
       ) : (
         <>
-          {deliveries.toReversed().map((delivery) => (
-            <div
-              key={delivery._id}
-              className="bg-white hover:bg-indigo-100 rounded-lg shadow-lg overflow-hidden"
-            >
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">
-                      {WASTE_TYPE_LABELS[delivery.wasteType]} Delivery
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      ID: {delivery._id.slice(-8)}
-                    </p>
-                  </div>
-                  <StatusBadge status={delivery.status} />
-                </div>
+          {deliveries.toReversed().map(
+            (delivery) =>
+              delivery.status !== GARBAGE_STATUS.CLAIMED && (
+                <div
+                  key={delivery._id}
+                  className="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-200"
+                >
+                  <div className="p-4 sm:p-5">
+                    {/* --- Header --- */}
+                    <div className="flex items-start justify-between pb-4 border-b border-gray-100">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {WASTE_TYPE_LABELS[delivery.wasteType]} Delivery
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-1">
+                          ID: {delivery._id.slice(-8)}
+                        </p>
+                      </div>
+                      <StatusBadge status={delivery.status} />
+                    </div>
 
-                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                  {/* Left Column - Waste Details */}
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-gray-700 mb-3">
-                      Waste Details
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Type:</span>
-                        <span className="font-medium text-gray-900">
-                          {WASTE_TYPE_LABELS[delivery.wasteType]}
-                        </span>
+                    {/* --- Main Details Grid --- */}
+                    <div className="grid md:grid-cols-2 gap-4 my-4">
+                      {/* Left Column - Waste Details */}
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                          Waste Details
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Type:</span>
+                            <span className="font-medium text-gray-900">
+                              {WASTE_TYPE_LABELS[delivery.wasteType]}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Weight:</span>
+                            <span className="font-medium text-gray-900">
+                              {delivery.weight} kg
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Value:</span>
+                            <span className="font-semibold text-green-600">
+                              {formatCurrency(delivery.equivalentPrice)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">
+                              Current Status:
+                            </span>
+                            <span className="font-medium text-gray-900">
+                              {STATUS_LABELS[delivery.status]}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Weight:</span>
-                        <span className="font-medium text-gray-900">
-                          {delivery.weight} kg
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Value:</span>
-                        <span className="font-semibold text-green-600">
-                          {formatCurrency(delivery.equivalentPrice)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Current Status:</span>
-                        <span className="font-medium text-gray-900">
-                          {STATUS_LABELS[delivery.status]}
-                        </span>
+
+                      {/* Right Column - Driver & Customer Info */}
+                      <div className="space-y-4">
+                        {/* Driver Info */}
+                        <div>
+                          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                            Driver Information
+                          </h4>
+                          {typeof delivery.driverId !== "string" &&
+                          delivery.driverId ? (
+                            <div className="text-sm space-y-1">
+                              <p className="font-medium text-gray-900">
+                                {delivery.driverId.name}
+                              </p>
+                              <p className="text-gray-600">
+                                {delivery.driverId.phone}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 italic">
+                              No driver assigned
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Customer Info */}
+                        <div>
+                          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                            Customer Location
+                          </h4>
+                          {typeof delivery.customerId !== "string" ? (
+                            <div className="text-sm space-y-1">
+                              <p className="text-gray-600">
+                                {delivery.customerId.location.address}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 italic">
+                              Location not available
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Right Column - Driver & Customer Info */}
-                  <div className="space-y-4">
-                    {/* Driver Info */}
-                    <div>
-                      <h4 className="font-semibold text-gray-700 mb-2">
-                        Driver Information
+                    {/* --- Timeline --- */}
+                    <div className="border-t border-gray-100 pt-4 mb-4">
+                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                        Delivery Timeline
                       </h4>
-                      {typeof delivery.driverId !== "string" &&
-                        delivery.driverId && (
-                          <div className="text-sm space-y-1">
-                            <p className="font-medium text-gray-900">
-                              {delivery.driverId.name}
-                            </p>
-                            <p className="text-gray-600">
-                              {delivery.driverId.phone}
-                            </p>
+                      <div className="space-y-2 text-sm">
+                        {delivery.claimedAt && (
+                          <div className="flex justify-between text-gray-600">
+                            <span>Claimed:</span>
+                            <span>{formatDateTime(delivery.claimedAt)}</span>
                           </div>
                         )}
+                        {delivery.assignedAt && (
+                          <div className="flex justify-between text-gray-600">
+                            <span>Driver Assigned:</span>
+                            <span>{formatDateTime(delivery.assignedAt)}</span>
+                          </div>
+                        )}
+                        {delivery.pickedUpAt && (
+                          <div className="flex justify-between text-gray-600">
+                            <span>Picked Up:</span>
+                            <span>{formatDateTime(delivery.pickedUpAt)}</span>
+                          </div>
+                        )}
+                        {delivery.deliveredAt && (
+                          <div className="flex justify-between text-green-600 font-medium">
+                            <span>Delivered:</span>
+                            <span>{formatDateTime(delivery.deliveredAt)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Customer Info */}
-                    <div>
-                      <h4 className="font-semibold text-gray-700 mb-2">
-                        Customer Location
-                      </h4>
-                      {typeof delivery.customerId !== "string" && (
-                        <div className="text-sm space-y-1">
-                          <p className="text-gray-600">
-                            {delivery.customerId.location.address}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                    {/* --- Actions --- */}
+                    {/* Accept Button - Only show if delivered */}
+                    {delivery.status === "delivered" && (
+                      <button
+                        onClick={(e) => startAction(delivery._id, e)}
+                        disabled={loading}
+                        className="w-full bg-green-600 text-white py-2.5 px-4 rounded-lg hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition duration-200 font-semibold text-sm shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                      >
+                        {loading
+                          ? "Accepting..."
+                          : "Accept Delivery & Credit Customer"}
+                      </button>
+                    )}
 
-                {/* Timeline */}
-                <div className="border-t pt-4 mb-4">
-                  <h4 className="font-semibold text-gray-700 mb-3">
-                    Delivery Timeline
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    {delivery.claimedAt && (
-                      <div className="flex justify-between text-gray-600">
-                        <span>Claimed:</span>
-                        <span>{formatDateTime(delivery.claimedAt)}</span>
-                      </div>
-                    )}
-                    {delivery.assignedAt && (
-                      <div className="flex justify-between text-gray-600">
-                        <span>Driver Assigned:</span>
-                        <span>{formatDateTime(delivery.assignedAt)}</span>
-                      </div>
-                    )}
-                    {delivery.pickedUpAt && (
-                      <div className="flex justify-between text-gray-600">
-                        <span>Picked Up:</span>
-                        <span>{formatDateTime(delivery.pickedUpAt)}</span>
-                      </div>
-                    )}
-                    {delivery.deliveredAt && (
-                      <div className="flex justify-between text-green-600 font-medium">
-                        <span>Delivered:</span>
-                        <span>{formatDateTime(delivery.deliveredAt)}</span>
+                    {/* Waiting message for other statuses */}
+                    {delivery.status !== "delivered" && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                        <p className="text-blue-700 font-medium text-sm">
+                          Waiting for driver to deliver this waste
+                        </p>
+                        <p className="text-blue-600 text-xs mt-1">
+                          Current status: {STATUS_LABELS[delivery.status]}
+                        </p>
                       </div>
                     )}
                   </div>
                 </div>
-
-                {/* Accept Button - Only show if delivered */}
-                {delivery.status === "delivered" && (
-                  <button
-                    onClick={(e) => startAction(delivery._id, e)}
-                    disabled={loading}
-                    className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition font-medium"
-                  >
-                    {loading
-                      ? "Accepting..."
-                      : "Accept Delivery & Credit Customer"}
-                  </button>
-                )}
-
-                {/* Waiting message for other statuses */}
-                {delivery.status !== "delivered" && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                    <p className="text-blue-800 font-medium">
-                      Waiting for driver to deliver this waste
-                    </p>
-                    <p className="text-blue-600 text-sm mt-1">
-                      Current status: {STATUS_LABELS[delivery.status]}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+              )
+          )}
         </>
       )}
 

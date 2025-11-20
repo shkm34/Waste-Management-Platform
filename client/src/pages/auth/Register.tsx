@@ -1,121 +1,21 @@
-// Register.tsx
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ROUTES, WASTE_TYPE_LABELS, WASTE_TYPES } from "../../utils";
 import { USER_ROLES } from "../../utils";
-import { RegisterData, USER_ROLES_TYPE, WasteType } from "@/types";
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useForm, SubmitHandler } from "react-hook-form";
-
-type FormValues = {
-  name: string;
-  email: string;
-  phone: string;
-  role: USER_ROLES_TYPE;
-  address: string;
-  password: string;
-  confirmPassword: string;
-  dealerTypes: WasteType[];
-};
+import { useRegister } from "./hooks/useRegister";
 
 function Register() {
-  const { register: registerUser, user } = useAuth();
-  const navigate = useNavigate();
-
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const {
     register,
     handleSubmit,
-    watch,
-    setValue,
-    getValues,
-    formState: { errors },
-  } = useForm<FormValues>({
-    mode: "onChange",
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      role: USER_ROLES.CUSTOMER as USER_ROLES_TYPE,
-      address: "",
-      password: "",
-      confirmPassword: "",
-      dealerTypes: [] as WasteType[],
-    },
-  });
-
-  const watchedPassword = watch("password", "");
-  const watchedRole = watch("role", USER_ROLES.CUSTOMER as USER_ROLES_TYPE);
-  const watchedDealerTypes = watch("dealerTypes", [] as WasteType[]);
-
-  // redirect if already logged in
-  useEffect(() => {
-    if (!user) return;
-    const redirectRoute =
-      user.role === USER_ROLES.CUSTOMER
-        ? ROUTES.CUSTOMER_DASHBOARD
-        : user.role === USER_ROLES.DRIVER
-          ? ROUTES.DRIVER_DASHBOARD
-          : user.role === USER_ROLES.DEALER
-            ? ROUTES.DEALER_DASHBOARD
-            : ROUTES.LOGIN;
-
-    navigate(redirectRoute, { replace: true });
-  }, [user, navigate]);
-
-  const handleDealerTypeChange = (wasteType: WasteType) => {
-    const current: WasteType[] = getValues("dealerTypes") || [];
-    const next = current.includes(wasteType)
-      ? current.filter((t) => t !== wasteType)
-      : [...current, wasteType];
-
-    // update form value and trigger validation
-    setValue("dealerTypes", next, { shouldValidate: true, shouldDirty: true });
-  };
-
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    setError("");
-
-    // extra validations 
-    if (data.password !== data.confirmPassword) {
-      setError("Password do not match");
-      return;
-    }
-
-    if (data.role === USER_ROLES.DEALER && data.dealerTypes.length === 0) {
-      setError("Dealers must select at least one waste type");
-      return;
-    }
-
-    setLoading(true);
-
-    const registerData: RegisterData = {
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      password: data.password,
-      role: data.role,
-      location: {
-        address: data.address,
-      },
-    };
-
-    if (data.role === USER_ROLES.DEALER) {
-      registerData.dealerTypes = data.dealerTypes;
-    }
-
-    try {
-      await registerUser(registerData);
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.error || "Registration failed. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    onSubmit,
+    error,
+    loading,
+    errors,
+    watchedPassword,
+    watchedRole,
+    watchedDealerTypes,
+    handleDealerTypeChange,
+  } = useRegister();
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
@@ -133,7 +33,10 @@ function Register() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Full Name
             </label>
             <input
@@ -141,17 +44,28 @@ function Register() {
               id="name"
               {...register("name", {
                 required: "Name is Required",
-                minLength: { value: 2, message: "Name must be at least 2 characters" },
-                maxLength: { value: 100, message: "Name must be at most 100 characters" },
+                minLength: {
+                  value: 2,
+                  message: "Name must be at least 2 characters",
+                },
+                maxLength: {
+                  value: 100,
+                  message: "Name must be at most 100 characters",
+                },
               })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+            )}
           </div>
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email
             </label>
             <input
@@ -163,12 +77,19 @@ function Register() {
               })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           {/* Phone */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="phone"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Phone
             </label>
             <input
@@ -176,16 +97,26 @@ function Register() {
               id="phone"
               {...register("phone", {
                 required: "Phone is Required",
-                pattern: { value: /^\d{10}$/, message: "Phone number must be 10 digits" },
+                pattern: {
+                  value: /^\d{10}$/,
+                  message: "Phone number must be 10 digits",
+                },
               })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>}
+            {errors.phone && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.phone.message}
+              </p>
+            )}
           </div>
 
           {/* Role */}
           <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="role"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Role
             </label>
             <select
@@ -193,7 +124,8 @@ function Register() {
               {...register("role", {
                 required: "Role is Required",
                 validate: (val) =>
-                  Object.values(USER_ROLES).includes(val as any) || `${val} is not a valid role`,
+                  Object.values(USER_ROLES).includes(val as any) ||
+                  `${val} is not a valid role`,
               })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -201,13 +133,17 @@ function Register() {
               <option value={USER_ROLES.DRIVER}>Driver</option>
               <option value={USER_ROLES.DEALER}>Dealer</option>
             </select>
-            {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>}
+            {errors.role && (
+              <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
+            )}
           </div>
 
           {/* Dealer types (only for dealer) */}
           {watchedRole === USER_ROLES.DEALER && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Waste Types Accepted</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Waste Types Accepted
+              </label>
               <div className="space-y-2">
                 {Object.values(WASTE_TYPES).map((type) => (
                   <label key={type} className="flex items-center">
@@ -217,7 +153,9 @@ function Register() {
                       onChange={() => handleDealerTypeChange(type)}
                       className="mr-2"
                     />
-                    <span className="text-gray-700">{WASTE_TYPE_LABELS[type]}</span>
+                    <span className="text-gray-700">
+                      {WASTE_TYPE_LABELS[type]}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -232,13 +170,20 @@ function Register() {
                     "Select at least one waste type",
                 })}
               />
-              {errors.dealerTypes && <p className="mt-1 text-sm text-red-600">{errors.dealerTypes.message}</p>}
+              {errors.dealerTypes && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.dealerTypes.message}
+                </p>
+              )}
             </div>
           )}
 
           {/* Address */}
           <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="address"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Address
             </label>
             <input
@@ -247,12 +192,19 @@ function Register() {
               {...register("address", { required: "Address is Required" })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address.message}</p>}
+            {errors.address && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.address.message}
+              </p>
+            )}
           </div>
 
           {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Password
             </label>
             <input
@@ -260,16 +212,26 @@ function Register() {
               id="password"
               {...register("password", {
                 required: "Password is Required",
-                minLength: { value: 6, message: "Password must be at least 6 characters" },
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
               })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
           {/* Confirm Password */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Confirm Password
             </label>
             <input
@@ -277,13 +239,19 @@ function Register() {
               id="confirmPassword"
               {...register("confirmPassword", {
                 required: "Confirm Password is Required",
-                minLength: { value: 6, message: "Confirm Password must be at least 6 characters" },
-                validate: (val) => val === watchedPassword || "Passwords do not match",
+                minLength: {
+                  value: 6,
+                  message: "Confirm Password must be at least 6 characters",
+                },
+                validate: (val) =>
+                  val === watchedPassword || "Passwords do not match",
               })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.confirmPassword.message}
+              </p>
             )}
           </div>
 
