@@ -38,7 +38,7 @@ function Marketplace() {
 
   //
   const handleConfirm = async (id: string) => {
-    // simulate async action
+   
     try {
       setLoading(true);
       await claimWaste(id);
