@@ -173,6 +173,9 @@ function AssignmentCard({
           </button>
         )}
 
+        {/* Cancel Assignment Button */}
+        {assignment.status}
+
         {/* Waiting for dealer message */}
         {assignment.status === "delivered" && (
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
