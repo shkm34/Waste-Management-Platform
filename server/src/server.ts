@@ -1,6 +1,12 @@
 import dotenv from "dotenv";
+import http from "http";
 import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
+import { initializeSocketServer } from "./socket/socketServer"; 
+import { setupSocketAuthentication} from "../src/socket/middlewares/socketAuth"; 
+//import { setupSocketHandlers } from "./socket/socketHandlers";
+import { AuthenticatedSocket } from "./socket/middlewares/socketAuth";
+
 import { connectDatabase, setupDatabaseEvents } from "./config/database";
 import { PORT, CLIENT_URL, NODE_ENV } from "./config/constants";
 import { errorHandler } from './middleware/errorMiddleware';
@@ -11,6 +17,9 @@ import transactionRoutes from './routes/transactionRoutes';
 dotenv.config();
 
 const app: Application = express();
+
+// Create HTTP server from Express app
+const httpServer = http.createServer(app);
 
 app.use(
   cors({
@@ -48,6 +57,27 @@ app.use('/api/auth', authRoutes);
 app.use('/api/garbage', garbageRoutes);
 app.use('/api/transactions', transactionRoutes);
 
+app.get('/api/socket-status', (_req: Request, res: Response) => {
+  const sockets = io.sockets.sockets;
+  const connectedSockets = Array.from(sockets.values()).map((s) => {
+    const authSocket = s as AuthenticatedSocket;
+    return {
+      socketId: s.id,
+      userId: authSocket.userId,
+      role: authSocket.userRole,
+      email: authSocket.userEmail,
+    };
+  });
+
+  res.json({
+    success: true,
+    data: {
+      totalConnections: sockets.size,
+      connections: connectedSockets,
+    },
+  });
+});
+
 
 app.post('/debug-body', (req, res) => {
   console.log('headers:', req.headers);
@@ -81,12 +111,20 @@ app.use((req: Request, res: Response) => {
 
 app.use(errorHandler);
 
+// initialize socket.io server
+const io = initializeSocketServer(httpServer)
+// setup socket authentication middleware
+setupSocketAuthentication(io);
+// setup socket handlers
+//setupSocketHandlers(io);
+
+
 // Start Server
 const startServer = async (): Promise<void> => {
   try {
     await connectDatabase();
     setupDatabaseEvents();
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log("\n" + "=".repeat(50));
       console.log("🚀 Waste Management Platform - Backend");
       console.log("=".repeat(50));
@@ -104,3 +142,4 @@ const startServer = async (): Promise<void> => {
 startServer();
 
 export default app;
+export { httpServer, io } // export for socket.io integration
