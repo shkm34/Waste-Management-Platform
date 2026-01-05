@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.IO Backend Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; }
+    h2 { color: #666; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button:hover { background: #45a049; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    input, select {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .connected { background: #4CAF50; color: white; }
+    .disconnected { background: #f44336; color: white; }
+    #logs {
+      background: #1e1e1e;
+      color: #00ff00;
+      padding: 15px;
+      border-radius: 4px;
+      height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    .log-entry { margin: 3px 0; }
+    .log-sent { color: #00ffff; }
+    .log-received { color: #ffff00; }
+    .log-error { color: #ff4444; }
+    .log-info { color: #00ff00; }
+  </style>
+</head>
+<body>
+  <h1>🧪 WebSocket Backend Test Tool</h1>
+  
+  <!-- Connection Section -->
+  <div class="container">
+    <h2>1. Connection</h2>
+    <div>
+      <label>Server URL:</label>
+      <input type="text" id="serverUrl" value="http://localhost:5000" style="width: 300px;">
+    </div>
+    <div>
+      <label>JWT Token:</label>
+      <input type="text" id="jwtToken" placeholder="Paste your JWT token here" style="width: 500px;">
+      <small>(Login first via REST API to get token)</small>
+    </div>
+    <div style="margin-top: 10px;">
+      <button id="connectBtn">Connect</button>
+      <button id="disconnectBtn" disabled>Disconnect</button>
+      <span>Status: <span id="status" class="status disconnected">Disconnected</span></span>
+    </div>
+  </div>
+
+  <!-- Dealer Actions -->
+  <div class="container">
+    <h2>2. Dealer Actions</h2>
+    <button id="joinMarketplaceBtn" disabled>Join Marketplace</button>
+    <button id="leaveMarketplaceBtn" disabled>Leave Marketplace</button>
+  </div>
+
+  <!-- Garbage Subscription -->
+  <div class="container">
+    <h2>3. Garbage Subscription</h2>
+    <input type="text" id="garbageId" placeholder="Enter Garbage ID">
+    <button id="subscribeGarbageBtn" disabled>Subscribe</button>
+    <button id="unsubscribeGarbageBtn" disabled>Unsubscribe</button>
+  </div>
+
+  <!-- Event Logs -->
+  <div class="container">
+    <h2>4. Event Logs</h2>
+    <button id="clearLogsBtn">Clear Logs</button>
+    <div id="logs"></div>
+  </div>
+
+  <!-- Socket.IO Client Library -->
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  
+  <script>
+    let socket = null;
+    const logsDiv = document.getElementById('logs');
+    
+    // Logging utility
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.textContent = `[${timestamp}] ${message}`;
+      logsDiv.appendChild(entry);
+      logsDiv.scrollTop = logsDiv.scrollHeight;
+    }
+
+    // Update UI state
+    function updateUI(connected) {
+      const statusEl = document.getElementById('status');
+      const buttons = ['connectBtn', 'disconnectBtn', 'joinMarketplaceBtn', 
+                      'leaveMarketplaceBtn', 'subscribeGarbageBtn', 'unsubscribeGarbageBtn'];
+      
+      if (connected) {
+        statusEl.textContent = 'Connected';
+        statusEl.className = 'status connected';
+        document.getElementById('connectBtn').disabled = true;
+        buttons.slice(1).forEach(id => document.getElementById(id).disabled = false);
+      } else {
+        statusEl.textContent = 'Disconnected';
+        statusEl.className = 'status disconnected';
+        document.getElementById('connectBtn').disabled = false;
+        buttons.slice(1).forEach(id => document.getElementById(id).disabled = true);
+      }
+    }
+
+    // Connect button
+    document.getElementById('connectBtn').addEventListener('click', () => {
+      const serverUrl = document.getElementById('serverUrl').value;
+      const token = document.getElementById('jwtToken').value.trim();
+
+      if (!token) {
+        alert('Please provide JWT token');
+        return;
+      }
+
+      log(`Connecting to ${serverUrl}...`, 'info');
+
+      socket = io(serverUrl, {
+        auth: { token },
+        transports: ['websocket', 'polling']
+      });
+
+      // Connection successful
+      socket.on('connect', () => {
+        log(`✅ Connected! Socket ID: ${socket.id}`, 'info');
+        updateUI(true);
+      });
+
+      // Connection error
+      socket.on('connect_error', (error) => {
+        log(`❌ Connection Error: ${error.message}`, 'error');
+        updateUI(false);
+      });
+
+      // Disconnected
+      socket.on('disconnect', (reason) => {
+        log(`❌ Disconnected: ${reason}`, 'error');
+        updateUI(false);
+      });
+
+      // Generic error handler
+      socket.on('error', (data) => {
+        log(`❌ Error: ${JSON.stringify(data)}`, 'error');
+      });
+
+      // ===== Dealer Events =====
+      socket.on('dealer:joinedMarketplace', (data) => {
+        log(`✅ ${data.message}`, 'received');
+      });
+
+      socket.on('dealer:leftMarketplace', (data) => {
+        log(`✅ ${data.message}`, 'received');
+      });
+
+      socket.on('garbage:created', (data) => {
+        log(`📦 New garbage created: ${data.wasteType} (${data.weight}kg) - ID: ${data._id}`, 'received');
+      });
+
+      socket.on('garbage:claimed', (data) => {
+        log(`📦 Garbage claimed: ${data.garbageId}`, 'received');
+      });
+
+      // ===== Garbage Events =====
+      socket.on('garbage:subscribed', (data) => {
+        log(`✅ Subscribed to garbage: ${data.garbageId}`, 'received');
+      });
+
+      socket.on('garbage:unsubscribed', (data) => {
+        log(`✅ Unsubscribed from garbage: ${data.garbageId}`, 'received');
+      });
+
+      socket.on('garbage:statusChanged', (data) => {
+        log(`🔄 Garbage status changed: ${data._id} → ${data.status}`, 'received');
+      });
+
+      // ===== Notification Events =====
+      socket.on('notification:new', (data) => {
+        log(`🔔 Notification: ${data.message} (${data.type})`, 'received');
+      });
+    });
+
+    // Disconnect button
+    document.getElementById('disconnectBtn').addEventListener('click', () => {
+      if (socket) {
+        socket.disconnect();
+        log('Disconnecting...', 'info');
+      }
+    });
+
+    // Join marketplace
+    document.getElementById('joinMarketplaceBtn').addEventListener('click', () => {
+      if (socket) {
+        socket.emit('dealer:joinMarketplace');
+        log('→ Emitted: dealer:joinMarketplace', 'sent');
+      }
+    });
+
+    // Leave marketplace
+    document.getElementById('leaveMarketplaceBtn').addEventListener('click', () => {
+      if (socket) {
+        socket.emit('dealer:leaveMarketplace');
+        log('→ Emitted: dealer:leaveMarketplace', 'sent');
+      }
+    });
+
+    // Subscribe to garbage
+    document.getElementById('subscribeGarbageBtn').addEventListener('click', () => {
+      const garbageId = document.getElementById('garbageId').value.trim();
+      if (socket && garbageId) {
+        socket.emit('garbage:subscribe', { garbageId });
+        log(`→ Emitted: garbage:subscribe (${garbageId})`, 'sent');
+      } else {
+        alert('Please enter Garbage ID');
+      }
+    });
+
+    // Unsubscribe from garbage
+    document.getElementById('unsubscribeGarbageBtn').addEventListener('click', () => {
+      const garbageId = document.getElementById('garbageId').value.trim();
+      if (socket && garbageId) {
+        socket.emit('garbage:unsubscribe', { garbageId });
+        log(`→ Emitted: garbage:unsubscribe (${garbageId})`, 'sent');
+      } else {
+        alert('Please enter Garbage ID');
+      }
+    });
+
+    // Clear logs
+    document.getElementById('clearLogsBtn').addEventListener('click', () => {
+      logsDiv.innerHTML = '';
+    });
+  </script>
+</body>
+</html>

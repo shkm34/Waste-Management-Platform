@@ -31,7 +31,7 @@ export interface IGarbage {
 }
 
 export interface IGarbageDocument extends IGarbage, Document {
-    //_id: string
+    _id: string
     createdAt: Date
     updatedAt: Date
 }

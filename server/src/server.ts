@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 import http from "http";
+import path from "path";
 import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { initializeSocketServer } from "./socket/socketServer"; 
 import { setupSocketAuthentication} from "../src/socket/middlewares/socketAuth"; 
-//import { setupSocketHandlers } from "./socket/socketHandlers";
+import { setupSocketHandlers } from "./socket/handlers/index ";
 import { AuthenticatedSocket } from "./socket/middlewares/socketAuth";
 
 import { connectDatabase, setupDatabaseEvents } from "./config/database";
@@ -40,6 +41,15 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
+// Serve static test page (development only)
+if (NODE_ENV === "development") {
+  app.use(express.static(path.join(__dirname, "../public")));
+  
+  app.get("/test", (_req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, "../public/socket-test.html"));
+  });
+}
+
 // Routes //
 
 // Health check route
@@ -49,6 +59,30 @@ app.get("/api/health", (_req: Request, res: Response) => {
     message: "Server is healthy",
     environment: NODE_ENV,
     time: new Date().toISOString(),
+  });
+});
+
+// Debug endpoint: View active rooms and connections
+app.get('/api/socket-debug', (_req: Request, res: Response) => {
+  const sockets = Array.from(io.sockets.sockets.values());
+  
+  const connections = sockets.map((s) => {
+    const authSocket = s as AuthenticatedSocket;
+    return {
+      socketId: s.id,
+      userId: authSocket.userId,
+      role: authSocket.userRole,
+      email: authSocket.userEmail,
+      rooms: Array.from(s.rooms),
+    };
+  });
+
+  res.json({
+    success: true,
+    data: {
+      totalConnections: sockets.length,
+      connections,
+    },
   });
 });
 
@@ -77,6 +111,8 @@ app.get('/api/socket-status', (_req: Request, res: Response) => {
     },
   });
 });
+
+
 
 
 app.post('/debug-body', (req, res) => {
@@ -116,7 +152,7 @@ const io = initializeSocketServer(httpServer)
 // setup socket authentication middleware
 setupSocketAuthentication(io);
 // setup socket handlers
-//setupSocketHandlers(io);
+setupSocketHandlers(io);
 
 
 // Start Server
