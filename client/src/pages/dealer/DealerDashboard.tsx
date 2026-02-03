@@ -7,7 +7,7 @@ import { GARBAGE_STATUS } from "@/utils";
 function DealerDashboard() {
   const { user } = useAuth();
 
-  const { incomingDeliveries, loading, error, stats, handleUnclaimDeliveries, fetchDeliveries, isSocketConnected, socketId } =
+  const { incomingDeliveries, loading, error, stats, handleUnclaimDeliveries, fetchDeliveries } =
     useDealerDashboard();
 
   if (loading) {
@@ -23,27 +23,9 @@ function DealerDashboard() {
       <div className="container mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         {/* Header Section */}
         <div className="mb-8 md:mb-10">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <h1 className="text-3xl sm:text-4xl font-bold text-slate-800">
-              Dealer Dashboard
-            </h1>
-            {/* Socket Connection Status Indicator */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
-              <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  isSocketConnected ? "bg-green-500 animate-pulse" : "bg-red-500"
-                }`}
-              />
-              <span className="text-xs font-medium text-slate-600">
-                {isSocketConnected ? "Live" : "Offline"}
-              </span>
-              {socketId && (
-                <span className="text-xs text-slate-400 hidden sm:inline">
-                  ({socketId.slice(0, 8)}...)
-                </span>
-              )}
-            </div>
-          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-800">
+            Dealer Dashboard
+          </h1>
           <p className="mt-1 text-lg text-slate-600">
             Welcome back, {user?.name}!
           </p>

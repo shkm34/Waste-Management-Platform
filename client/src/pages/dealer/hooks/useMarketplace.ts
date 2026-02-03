@@ -1,7 +1,7 @@
 import { claimWaste, getMarketplace } from "@/services/dealerService";
 import { useEffect, useState, useCallback } from "react";
 import { Garbage } from "@/types";
-import { useSocket } from "../../../socket/SocketContext";
+import { useSocket, useSocketConnection } from "../../../socket/SocketContext";
 import { useSocketEvent } from "../../../socket/useSocketEvent";
 import { SOCKET_EVENTS } from "../../../config/socketConstants";
 import { GarbageCreatedPayload } from "../../../types/socket.types";
@@ -13,23 +13,33 @@ export const useMarketplace = () => {
   const [open, setOpen] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
   const socket = useSocket(); // get socket from context
+  // Use isConnected from context state - this is properly reactive unlike socket?.connected
+  const { isConnected, socketId } = useSocketConnection();
+
+  console.log("[useMarketplace] Socket status - isConnected:", isConnected, "socketId:", socketId);
 
   // ===== JOIN MARKETPLACE ROOM =====
   const joinMarketplace = useCallback(() => {
-    if (!socket?.connected) return;
+    if (!socket || !isConnected) {
+      console.log("[useMarketplace] Cannot join - socket not ready. socket:", !!socket, "isConnected:", isConnected);
+      return;
+    }
 
     socket.emit(SOCKET_EVENTS.DEALER_JOIN_MARKETPLACE);
     console.log("📦 Joining dealer marketplace...");
-  }, [socket]);
+  }, [socket, isConnected]);
 
   // ===== LEAVE MARKETPLACE ROOM =====
   const leaveMarketplace = useCallback(() => {
-    if (!socket?.connected) return;
+    if (!socket || !isConnected) {
+      console.log("[useMarketplace] Cannot leave - socket not ready");
+      return;
+    }
 
     socket.emit(SOCKET_EVENTS.DEALER_LEAVE_MARKETPLACE);
     console.log("📦 Leaving dealer marketplace...");
     setIsJoined(false);
-  }, [socket]);
+  }, [socket, isConnected]);
 
   // ===== HANDLE MARKETPLACE JOIN CONFIRMATION =====
   useSocketEvent(SOCKET_EVENTS.DEALER_JOINED_MARKETPLACE, () => {
@@ -89,21 +99,24 @@ export const useMarketplace = () => {
 
   // Setup: Fetch initial data + Join room
   useEffect(() => {
-    console.log("useMarketplace useEffect running");
+    console.log("[useMarketplace] useEffect running - isConnected:", isConnected);
     // Fetch existing marketplace data
     fetchMarketplace();
 
-    if (!socket?.connected) return;
-
+    if (!isConnected) {
+      console.log("[useMarketplace] Socket not connected yet, waiting...");
+      return;
+    }
 
     // Join marketplace room for real-time updates
+    console.log("[useMarketplace] Socket connected, joining marketplace room...");
     joinMarketplace();
 
     // Cleanup: Leave room on unmount
     return () => {
       leaveMarketplace();
     };
-  }, [fetchMarketplace, joinMarketplace, leaveMarketplace, socket?.connected]);
+  }, [fetchMarketplace, joinMarketplace, leaveMarketplace, isConnected]);
 
 
   const startAction = (e: React.MouseEvent<HTMLButtonElement>) => {
