@@ -53,6 +53,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                         const currentUser = await authService.getCurrentUser();
                         setUser(currentUser);
                         localStorage.setItem("user", JSON.stringify(currentUser));
+                        
+                        // Connect socket with stored token on page refresh/reload
+                        console.log("[AuthProvider] Reconnecting socket on init with stored token");
+                        connect(storedToken);
                     } catch (error) {
                         console.error("Token validation Failed", error);
                         setToken(null);
@@ -69,7 +73,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         };
 
         initAuth();
-    }, []);
+    }, [connect]);
 
     const register = async (data: RegisterData): Promise<void> => {
         try {
