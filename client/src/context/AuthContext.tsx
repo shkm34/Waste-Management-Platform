@@ -1,7 +1,7 @@
 import * as authService from "../services/authService";
 import { LoginData, RegisterData, User } from "@/types";
 import { useEffect, useState, createContext, ReactNode } from "react";
-
+import { useSocketConnection } from "../socket/SocketContext";
 // Context Created
 interface AuthContextType {
     user: User | null;
@@ -30,6 +30,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+
+    //get socket connect fun from socket context
+    const { connect, disconnect } = useSocketConnection();
+
+    console.log("[AuthProvider] connect typeof:", typeof connect, "connect ref:", connect);
 
     //Inilialize auth states from localStorage on mount
     useEffect(() => {
@@ -96,6 +101,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             // persist to localStorage
             localStorage.setItem("token", response.token);
             localStorage.setItem("user", JSON.stringify(response.user));
+
+            // connect soket with token
+            connect(response.token);
         } catch (error) {
             console.error("Login Error:", error);
             throw error;
@@ -107,6 +115,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(null);
         // already removing localStorage item in authService
         authService.logout();
+        disconnect();
     };
 
     const isAuthenticated = !!token && !!user;

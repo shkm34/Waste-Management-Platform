@@ -1,8 +1,11 @@
 import { ConnectionStatus } from "@/types/socket.types";
-import { ReactNode, useCallback, useState, createContext } from "react";
+import { ReactNode, useCallback, useState, createContext, useContext } from "react";
 import { connectSocket, disconnectSocket, getSocket } from "./socketClient";
+import type { Socket } from "socket.io-client";
 
-type ClientSocket = ReturnType<typeof io>;
+type ClientSocket = Socket | null;;
+
+console.log("[SocketContext] module loaded — runtime:", typeof window === "undefined" ? "server" : "browser");
 
 // === Define Socket Context value ===
 
@@ -45,6 +48,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       // create socket connection
       const newSocket = connectSocket(token);
       setSocket(newSocket);
+      console.log("connect socket call ho raha", socket)
 
       // Listen for connection status change
       newSocket.on("connect", () => {
@@ -112,3 +116,35 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
  * Hook to access socket context
  * To be used inside SocketProvider component
  */
+
+export const useSocketContext = (): SocketContextValue=>{
+  const context = useContext(SocketContext)
+  console.log("context socket", context)
+
+  if(context == undefined){
+    throw new Error("useSocketContext must be used within SocketProvider");
+  }
+
+  return context
+}
+
+/**
+ * Simple hook to get just the socket instance
+ * Returns null if not connected
+ */
+
+export const useSocket = ()=>{
+  const {socket} = useSocketContext()
+  return socket
+}
+
+export const useSocketConnection = () => {
+  const {connectionStatus, connect, disconnect} = useSocketContext()
+console.log("socket", connectionStatus)
+  return {
+    ...connectionStatus,
+    connect,
+    disconnect,
+  }
+}
+

@@ -1,21 +1,80 @@
-
 import { claimWaste, getMarketplace } from "@/services/dealerService";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Garbage } from "@/types";
+import { useSocket } from "../../../socket/SocketContext";
+import { useSocketEvent } from "../../../socket/useSocketEvent";
+import { SOCKET_EVENTS } from "../../../config/socketConstants";
+import { GarbageCreatedPayload } from "../../../types/socket.types";
 
 export const useMarketplace = () => {
-    const [availableWaste, setAvailableWaste] = useState<Garbage[]>([]);
+  const [availableWaste, setAvailableWaste] = useState<Garbage[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [isJoined, setIsJoined] = useState(false);
+  const socket = useSocket(); // get socket from context
 
+  // ===== JOIN MARKETPLACE ROOM =====
+  const joinMarketplace = useCallback(() => {
+    if (!socket?.connected) return;
 
-    // load all waste on mount
-  useEffect(() => {
-    fetchMarketplace();
-  }, []);
+    socket.emit(SOCKET_EVENTS.DEALER_JOIN_MARKETPLACE);
+    console.log("📦 Joining dealer marketplace...");
+  }, [socket]);
 
-  const fetchMarketplace = async () => {
+  // ===== LEAVE MARKETPLACE ROOM =====
+  const leaveMarketplace = useCallback(() => {
+    if (!socket?.connected) return;
+
+    socket.emit(SOCKET_EVENTS.DEALER_LEAVE_MARKETPLACE);
+    console.log("📦 Leaving dealer marketplace...");
+    setIsJoined(false);
+  }, [socket]);
+
+  // ===== HANDLE MARKETPLACE JOIN CONFIRMATION =====
+  useSocketEvent(SOCKET_EVENTS.DEALER_JOINED_MARKETPLACE, () => {
+    setIsJoined(true);
+    console.log("✅ Successfully joined marketplace room");
+  });
+
+  // ===== HANDLE MARKETPLACE LEAVE CONFIRMATION =====
+  useSocketEvent(SOCKET_EVENTS.DEALER_LEFT_MARKETPLACE, () => {
+    setIsJoined(false);
+    console.log("✅ Successfully left marketplace room");
+  });
+
+  // ===== HANDLE NEW GARBAGE CREATED =====
+  useSocketEvent(
+    SOCKET_EVENTS.GARBAGE_CREATED,
+    useCallback((newGarbage) => {
+      console.log("📦 New garbage created:", newGarbage);
+
+      // add new garbage to available waste list
+      setAvailableWaste((prev) => {
+        // prevent dupplicate- in case multiple dupli. listner
+        const exist = prev.some((item) => item._id === newGarbage._id);
+
+        if (exist) return prev;
+
+        return [newGarbage, ...prev];
+      });
+    }, []),
+  );
+
+  // ===== HANDLE GARBAGE CLAIMED BY ANY DEALER =====
+  useSocketEvent(
+    SOCKET_EVENTS.GARBAGE_CLAIMED,
+    useCallback((data) => {
+      console.log("📦 Garbage claimed:", data.garbageId);
+
+      // remove from list
+      setAvailableWaste((prev) =>
+        prev.filter((item) => item._id !== data.garbageId),
+      );
+    }, []),
+  );
+
+  const fetchMarketplace = useCallback(async () => {
     try {
       setError("");
       setLoading(true);
@@ -26,16 +85,34 @@ export const useMarketplace = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-    const startAction = (e: React.MouseEvent<HTMLButtonElement>) => {
+  // Setup: Fetch initial data + Join room
+  useEffect(() => {
+    console.log("useMarketplace useEffect running");
+    // Fetch existing marketplace data
+    fetchMarketplace();
+
+    if (!socket?.connected) return;
+
+
+    // Join marketplace room for real-time updates
+    joinMarketplace();
+
+    // Cleanup: Leave room on unmount
+    return () => {
+      leaveMarketplace();
+    };
+  }, [fetchMarketplace, joinMarketplace, leaveMarketplace, socket?.connected]);
+
+
+  const startAction = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     setOpen(true);
   };
 
   //
   const handleConfirm = async (id: string) => {
-   
     try {
       setLoading(true);
       await claimWaste(id);
@@ -44,7 +121,7 @@ export const useMarketplace = () => {
 
       if (errorMsg.includes("No drivers available")) {
         setError(
-          "⚠️ No drivers available at the moment. Please try again later or contact support."
+          "⚠️ No drivers available at the moment. Please try again later or contact support.",
         );
       } else if (errorMsg.includes("already been claimed")) {
         setError("This waste has already been claimed by another dealer.");
@@ -67,5 +144,6 @@ export const useMarketplace = () => {
     open,
     setOpen,
     startAction,
-    handleConfirm}
-}
+    handleConfirm,
+  };
+};

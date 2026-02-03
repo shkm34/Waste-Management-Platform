@@ -10,83 +10,84 @@ import RoleBasedRoute from '@/components/layout/RoleBasedRoutes';
 import { AuthProvider } from './context/AuthContext';
 import CreateWasteForm from './components/forms/CreateWasteForm';
 import GarbageDetails from './components/common/GarbageDetails';
-
+import { SocketProvider } from './socket/SocketContext';
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Navbar />
-        <Routes>
-          {/* Public routes */}
-          <Route path={ROUTES.HOME} element={<></>} />
-          <Route path={ROUTES.LOGIN} element={<Login />} />
-          <Route path={ROUTES.REGISTER} element={<Register />} />
+    <SocketProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Navbar />
+          <Routes>
+            {/* Public routes */}
+            <Route path={ROUTES.HOME} element={<></>} />
+            <Route path={ROUTES.LOGIN} element={<Login />} />
+            <Route path={ROUTES.REGISTER} element={<Register />} />
 
+            {/* Private routes */}
 
-          {/* Private routes */}
+            <Route
+              path={ROUTES.CUSTOMER_DASHBOARD}
+              element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['customer']}>
+                    <CustomerDashboard />
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path={ROUTES.CUSTOMER_DASHBOARD}
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['customer']}>
-                  <CustomerDashboard />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path={ROUTES.CUSTOMER_DASHBOARD + '/create'}
+              element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['customer']}>
+                    <CreateWasteForm />
+                  </RoleBasedRoute>
+                </ProtectedRoute>
 
-          <Route
-            path={ROUTES.CUSTOMER_DASHBOARD + '/create'}
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['customer']}>
-                   <CreateWasteForm />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-              
-            }
-          />
+              }
+            />
 
-          <Route
-            path={ROUTES.CUSTOMER_DASHBOARD + '/wallet'}
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['customer']}>
-                   <WalletTransaction />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-              
-            }
-          />
+            <Route
+              path={ROUTES.CUSTOMER_DASHBOARD + '/wallet'}
+              element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['customer']}>
+                    <WalletTransaction />
+                  </RoleBasedRoute>
+                </ProtectedRoute>
 
-          <Route
-            path={ROUTES.DRIVER_DASHBOARD}
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['driver']}>
-                  <DriverDashboard />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path={ROUTES.DEALER_DASHBOARD}
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['dealer']}>
-                  <DealerDashboard />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route path={ROUTES.DEALER_MARKETPLACE} element={<Marketplace />} />
+              }
+            />
+
+            <Route
+              path={ROUTES.DRIVER_DASHBOARD}
+              element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['driver']}>
+                    <DriverDashboard />
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.DEALER_DASHBOARD}
+              element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['dealer']}>
+                    <DealerDashboard />
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              }
+            />
+            <Route path={ROUTES.DEALER_MARKETPLACE} element={<Marketplace />} />
 
           // Common routes
-          <Route path={ROUTES.GET_GARBAGE_BY_ID} element={<GarbageDetails/>} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            <Route path={ROUTES.GET_GARBAGE_BY_ID} element={<GarbageDetails />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </SocketProvider>
 
   );
 }

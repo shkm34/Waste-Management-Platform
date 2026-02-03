@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/utils';
 import { USER_ROLES } from '@/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { ConnectionStatus } from '../common/ConnectionStatus';
 
 function Navbar() {
 
@@ -86,6 +87,7 @@ function Navbar() {
                   Logout
                 </button>
               </div>
+              {import.meta.env.DEV && <ConnectionStatus />}
             </div>
 
 

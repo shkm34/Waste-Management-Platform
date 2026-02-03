@@ -4,6 +4,8 @@ import { SOCKET_CONFIG } from "../config/socketConstants";
 
 let socket: ClientSocket | null = null;
 
+console.log("[socketClient] module loaded — runtime:", typeof window === "undefined" ? "server" : "browser");
+
 /**
  * Create and connect socket with authentication token
  * Returns the socket instance
@@ -25,6 +27,8 @@ export const connectSocket = (authToken: string): ClientSocket => {
             token: authToken
         }
     })
+
+    console.log("socket hai kya", socket)
 
     // ====== Debug logging ======
 
