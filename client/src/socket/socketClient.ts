@@ -28,23 +28,28 @@ export const connectSocket = (authToken: string): ClientSocket => {
         }
     })
 
-    console.log("socket hai kya", socket)
+    console.log("[socketClient] Socket created, autoConnect:", SOCKET_CONFIG.options.autoConnect);
 
-    // ====== Debug logging ======
-
-    if (SOCKET_CONFIG.debug) {
-        socket.on("connect", () => {
-            console.log("✅ Socket connected:", socket?.id);
-        });
-
-        socket.on("disconnect", (reason: string) => {
-            console.log("❌ Socket disconnected:", reason);
-        });
-
-        socket.on("connect_error", (error: Error) => {
-            console.error("❌ Connection error:", error.message);
-        });
+    // Since autoConnect is false, we need to manually connect
+    // This allows us to set up event listeners before connecting
+    if (!SOCKET_CONFIG.options.autoConnect) {
+        console.log("[socketClient] Manually connecting socket...");
+        socket.connect();
     }
+
+    // ====== Connection event logging ======
+    // Always log connection events for debugging (can be disabled later)
+    socket.on("connect", () => {
+        console.log("[socketClient] ✅ Socket connected:", socket?.id);
+    });
+
+    socket.on("disconnect", (reason: string) => {
+        console.log("[socketClient] ❌ Socket disconnected:", reason);
+    });
+
+    socket.on("connect_error", (error: Error) => {
+        console.error("[socketClient] ❌ Connection error:", error.message);
+    });
 
     // ====== ======
 
