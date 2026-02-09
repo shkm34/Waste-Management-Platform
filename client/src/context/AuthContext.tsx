@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     //Inilialize auth states from localStorage on mount
     useEffect(() => {
+        // function to initialize auth state when app mounts - reload or first visit
         const initAuth = async () => {
             try {
                 const storedToken = localStorage.getItem("token");

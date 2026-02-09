@@ -43,7 +43,9 @@ export const SOCKET_EVENTS = {
 
   // Garbage events
   GARBAGE_CREATED: "garbage:created",
+  GARBAGE_CANCELLED: "garbage:cancelled",
   GARBAGE_CLAIMED: "garbage:claimed",
+  GARBAGE_UNCLAIMED: "garbage:unclaimed",
   GARBAGE_STATUS_CHANGED: "garbage:statusChanged",
   GARBAGE_SUBSCRIBE: "garbage:subscribe",
   GARBAGE_UNSUBSCRIBE: "garbage:unsubscribe",

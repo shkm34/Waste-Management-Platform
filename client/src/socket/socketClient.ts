@@ -37,12 +37,21 @@ export const connectSocket = (authToken: string): ClientSocket => {
         socket.connect();
     }
 
+    // ====== Debug logging ======
+
+    // if (SOCKET_CONFIG.debug) {
+    //     socket.on("connect", () => {
+    //         console.log("✅ Socket connected:", socket?.id);
+    //     });
     // ====== Connection event logging ======
     // Always log connection events for debugging (can be disabled later)
     socket.on("connect", () => {
         console.log("[socketClient] ✅ Socket connected:", socket?.id);
     });
 
+    //     socket.on("disconnect", (reason: string) => {
+    //         console.log("❌ Socket disconnected:", reason);
+    //     });
     socket.on("disconnect", (reason: string) => {
         console.log("[socketClient] ❌ Socket disconnected:", reason);
     });

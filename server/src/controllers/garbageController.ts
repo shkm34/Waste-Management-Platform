@@ -16,6 +16,7 @@ import { io } from "../server";
 import {
     emitGarbageClaimed,
     emitGarbageCreated,
+    emitGarbageCancelled,
     emitGarbageStatusChanged,
     emitNotificationToUser,
 } from "../socket/events/emitters";
@@ -116,6 +117,17 @@ export const deleteGarbage = asyncHandler(
         }
 
         await garbage.deleteOne();
+
+        // REAL-TIME BROADCASTS
+        //notify to all dealer in marketplace
+        emitGarbageCancelled(io, garbage._id);
+
+        // send confirmation notification to customer
+        emitNotificationToUser(io, req.user!._id.toString(), {
+            type: "GARBAGE_CANCELLED",
+            message: `Your ${garbage._id} waste listing is deleted`,
+            garbageId: garbage._id.toString(),
+        });
 
         res.status(200).json({
             success: true,

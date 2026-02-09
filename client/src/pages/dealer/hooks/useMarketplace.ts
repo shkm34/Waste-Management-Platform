@@ -2,6 +2,7 @@ import { claimWaste, getMarketplace } from "@/services/dealerService";
 import { useEffect, useState, useCallback } from "react";
 import { Garbage } from "@/types";
 import { useSocket, useSocketConnection } from "../../../socket/SocketContext";
+import { useSocket, useSocketConnection } from "../../../socket/SocketContext";
 import { useSocketEvent } from "../../../socket/useSocketEvent";
 import { SOCKET_EVENTS } from "../../../config/socketConstants";
 import { GarbageCreatedPayload } from "../../../types/socket.types";
@@ -70,6 +71,15 @@ export const useMarketplace = () => {
       });
     }, []),
   );
+
+  // ===== HANDLE CANCELLATION OF CREATED GARBAGE =====
+  useSocketEvent(
+    SOCKET_EVENTS.GARBAGE_CANCELLED, useCallback((garbageId)=> {
+      setAvailableWaste((prev)=>{
+        return prev.filter((waste)=> waste._id !== garbageId)
+      })
+    }, [])
+  )
 
   // ===== HANDLE GARBAGE CLAIMED BY ANY DEALER =====
   useSocketEvent(

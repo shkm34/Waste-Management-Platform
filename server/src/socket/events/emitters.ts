@@ -32,6 +32,15 @@ export const emitGarbageCreated = (io: SocketIOServer, garbage: any): void => {
   console.log(`   Type: ${garbage.wasteType}`);
 };
 
+// EMIT FOR CANCELLED GARBAGE
+// @param io - Socket.IO server instance
+// @param garbage - CANCELLED Garbage object
+export const emitGarbageCancelled = (io: SocketIOServer, garbageId: string): void =>{
+   const payload = garbageId;
+  io.to("dealer-marketplace").emit("garbage:cancelled", payload)
+  console.log(`   Garbage ID: ${garbageId} cancelled by customer`);
+}
+
 // EMIT GARBAGE STATUS CHANGE TO SUBSCRIBED USERS
 export const emitGarbageStatusChanged = (
   io: SocketIOServer,
