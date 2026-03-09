@@ -1,155 +1,530 @@
-# Waste Management Platform
+♻️ Waste Management Marketplace
 
-A three-role marketplace platform connecting waste generators (Customers), processing facilities (Dealers), and transport logistics (Drivers).
+MERN + Socket.IO Real-Time Platform
 
-This project aims to streamline the waste collection process, creating a simple, efficient marketplace for waste, and incentivizing recycling and proper disposal through a digital credits system.
+A full-stack waste management marketplace where customers post waste pickup requests, dealers claim and process them, and drivers handle logistics — all powered by real-time updates using Socket.IO.
 
-# Key Features
+Built with MongoDB, Express, React, Node.js, and TypeScript.
 
-Secure Authentication: JWT-based auth for all users, with secure password hashing (bcrypt).
+📑 Table of Contents
 
-Role-Based Access Control: The application provides a unique UI and set of permissions for each role:
+Overview
 
-# Customer Role:
+Core Features
 
-Create and schedule new waste pickup requests.
+Architecture
 
-Track the real-time status of their pickups (e.g., "Available," "Claimed," "Picked Up").
+Tech Stack
 
-Receive wallet credits upon successful delivery confirmation.
+Folder Structure
 
-# Dealer Role:
+Backend Setup
 
-Browse a live marketplace of available waste pickups, filtered by type (e.g., "Plastic," "Organic," "Electronic").
-
-Claim waste pickups that match their facility's capabilities.
-
-Confirm delivery to close the loop and trigger credit transfer.
-
-# Driver Role:
-
-View a dashboard of assigned pickup and delivery jobs.
-
-Update job status in real-time.
-
-View customer and dealer location details for logistics.
-
-# Tech Stack
-
-This project is a full-stack MERN application built with modern, type-safe tools.
-
-## Frontend:
-
-React (with Vite): A high-performance, modern React build tool.
-
-TypeScript: For robust, type-safe code.
-
-Tailwind CSS: For utility-first styling and component design.
-
-Axios: For promise-based API communication.
-
-React Hook Form: For efficient and performant form validation.
-
-## Backend:
-
-Node.js: JavaScript runtime environment.
-
-Express.js: Minimalist web framework for building the REST API.
-
-TypeScript: For type safety on the server.
-
-## Database:
-
-MongoDB: NoSQL database for flexible data storage.
-
-Mongoose: Object Data Modeling (ODM) library for MongoDB.
-
-Getting Started
-
-Follow these instructions to get a local copy of the project up and running for development and testing.
-
-# Prerequisites
-
-You will need the following tools installed on your machine:
-
-Node.js (v18.x or later)
-
-npm (Node Package Manager)
-
-MongoDB (or a MongoDB Atlas cloud account)
-
-Local Setup
-
-Clone the repository:
-
-git clone [https://github.com/your-username/your-repo-link.git](https://github.com/your-username/your-repo-link.git)
-cd your-repo-link
-
-
-Setup the Backend (Server):
-
-# Navigate to the server directory
-cd server
-
-# Install dependencies
-npm install
-
-# Create a .env file from the example
-cp .env.example .env
-
-# Add your environment variables to the .env file (see below)
-
-# Start the development server
-npm run dev
-
-
-Your backend server will be running on http://localhost:5000 (or your specified port).
-
-Setup the Frontend (Client):
-
-# Navigate to the client directory from the root
-cd client
-
-# Install dependencies
-npm install
-
-# Create a .env file from the example
-cp .env.example .env
-
-# Add your environment variables (see below)
-
-# Start the React development server
-npm run dev
-
-
-Your React app will be available at http://localhost:5173 (or the next available port).
+Frontend Setup
 
 Environment Variables
 
-You must create .env files in both the /server and /client directories.
+Authentication & Roles
 
-Server (server/.env):
+Real-Time Features
 
-# Port for the Express server
+API Overview
+
+Socket Events
+
+Development Workflow
+
+Testing
+
+Potential Improvements
+
+License
+
+1. Overview
+
+This project is a real-time waste management platform connecting three types of users:
+
+👤 Customers
+
+Create waste listings (plastic, metal, e-waste etc.)
+
+Schedule pickups
+
+Track request status
+
+🏭 Dealers
+
+Browse marketplace listings
+
+Claim waste pickup jobs
+
+Coordinate logistics
+
+🚚 Drivers
+
+Handle pickups and deliveries
+
+Update job progress in real time
+
+The platform combines REST APIs for reliability and Socket.IO for real-time updates, ensuring both robustness and live responsiveness.
+
+2. Core Features
+2.1 User Accounts & Roles
+
+Authentication is handled using JWT tokens.
+
+Supported roles:
+
+customer
+
+dealer
+
+driver
+
+Role-based access control is enforced for:
+
+REST APIs
+
+Socket events
+
+Marketplace access
+
+Example: only dealers can join the dealer marketplace room.
+
+2.2 Waste / Garbage Management
+Customers can
+
+Create waste listings
+
+Specify type, weight, location, pickup schedule
+
+Track request status
+
+Waste lifecycle:
+
+AVAILABLE → CLAIMED → ASSIGNED → READY → PICKED_UP → DELIVERED
+Dealers can
+
+Browse available waste listings
+
+Claim jobs
+
+See listings update in real time
+
+Drivers can
+
+View assigned jobs
+
+Update pickup and delivery status
+
+2.3 Real-Time Features
+Dealer Marketplace Room
+
+Dealers receive live updates:
+
+garbage:created
+
+garbage:claimed
+
+Garbage Specific Room
+
+Participants join:
+
+garbage-{garbageId}
+
+They receive status updates for that specific listing.
+
+User Notification Room
+
+Each user automatically joins:
+
+user-{userId}
+
+Used for notifications like:
+
+"Your waste was claimed"
+
+"Driver assigned"
+
+"Pickup completed"
+
+2.4 Frontend UX
+
+The frontend is a React + TypeScript Single Page Application.
+
+Features include:
+
+Global Socket.IO connection via React Context
+
+Custom hooks for socket management
+
+Toast notifications
+
+Real-time marketplace updates
+
+Socket connection indicators
+
+
+
+3. Architecture
+
+The system follows a MERN architecture enhanced with WebSockets.
+```
+Client (React + TypeScript)
+      |
+      |------ REST API ------> Express Server
+      |                          |
+      |<-------------------------|
+      |
+      |------ WebSocket --------> Socket.IO
+                                 |
+                                 +---- MongoDB
+
+ ```                               
+3.1 Backend
+
+Express provides REST APIs such as:
+
+/api/auth
+/api/garbage
+/api/transactions
+
+Socket.IO is attached to the same HTTP server.
+
+Features include:
+
+JWT-based socket authentication
+
+Role-based socket access
+
+Room-based messaging
+
+Rooms used:
+
+dealer-marketplace
+garbage-{id}
+user-{userId}
+
+Controllers handle:
+
+Request validation
+
+Database operations
+
+Emitting socket events after successful operations
+
+3.2 Frontend
+
+Frontend architecture uses:
+
+React
+
+TypeScript
+
+Socket.IO client
+
+Socket management is centralized using:
+
+socketService
+
+Singleton wrapper for socket.io-client.
+
+SocketProvider
+
+React Context exposing:
+
+socket
+connection status
+Custom Hooks
+useSocket
+useSocketEvent
+useSocketConnection
+useDealerMarketplace
+
+REST APIs are used for initial data loading, while Socket.IO handles real-time updates.
+
+4. Tech Stack
+Backend
+
+Node.js
+
+Express
+
+MongoDB
+
+Mongoose
+
+Socket.IO
+
+TypeScript
+
+JWT Authentication
+
+Frontend
+
+React
+
+TypeScript
+
+Vite / CRA
+
+Socket.IO Client
+
+CSS / Tailwind
+
+5. Folder Structure
+```
+├── backend
+│   ├── src
+│   │   ├── config
+│   │   ├── controllers
+│   │   ├── middleware
+│   │   ├── models
+│   │   ├── routes
+│   │   ├── socket
+│   │   ├── server.ts
+│   │   └── app.ts
+│   └── package.json
+│
+└── frontend
+    ├── src
+    │   ├── config
+    │   ├── context
+    │   ├── hooks
+    │   ├── components
+    │   ├── pages
+    │   ├── styles
+    │   ├── types
+    │   ├── App.tsx
+    │   └── main.tsx
+    └── package.json
+```
+7. Backend Setup
+Prerequisites
+
+Node.js LTS
+
+MongoDB (local or Atlas)
+
+npm or yarn
+
+Install Dependencies
+cd backend
+npm install
+Environment Variables
+
+Create .env inside backend.
+
+NODE_ENV=development
 PORT=5000
+CLIENT_URL=http://localhost:5173
 
-# Your MongoDB connection string
-MONGO_URI="mongodb://localhost:27017/waste_management"
+MONGO_URI=mongodb://localhost:27017/waste-management
 
-# JWT secret for signing tokens
-JWT_SECRET="your_super_secret_jwt_key"
-JWT_EXPIRE="1d"
+JWT_SECRET=your_secret
+JWT_EXPIRES_IN=7d
+Run Backend
+npm run dev
 
+Expected output:
 
-Client (client/.env):
+🚀 Waste Management Platform - Backend
+Environment: development
+Server: http://localhost:5000
+Health: http://localhost:5000/api/health
+7. Frontend Setup
+Install Dependencies
+cd frontend
+npm install
+Environment Variables
 
-# URL of the backend API
-VITE_API_URL="http://localhost:5000/api"
+Create .env in frontend.
 
+VITE_API_URL=http://localhost:5000
+VITE_SOCKET_URL=http://localhost:5000
 
-Project Status
+VITE_SOCKET_DEBUG=true
+VITE_SOCKET_AUTO_CONNECT=false
+Run Frontend
+npm run dev
 
-🚧 In Development - MVP Phase
+Default:
 
+http://localhost:5173
+8. Environment Variables
+Backend
+Variable	Description
+NODE_ENV	development / production
+PORT	Backend port
+CLIENT_URL	Frontend URL for CORS
+MONGO_URI	MongoDB connection string
+JWT_SECRET	JWT signing key
+JWT_EXPIRES_IN	Token expiry
+Frontend
+Variable	Description
+VITE_API_URL	REST API base URL
+VITE_SOCKET_URL	Socket server URL
+VITE_SOCKET_DEBUG	Debug logs
+VITE_SOCKET_AUTO_CONNECT	Auto connect socket
+9. Authentication & Roles
 
+Authentication follows the JWT token pattern.
 
+Register
+POST /api/auth/register
+
+Example:
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "9999999999",
+  "password": "password123",
+  "role": "dealer",
+  "location": "City, State"
+}
+Login
+POST /api/auth/login
+
+Response:
+
+{
+  "token": "JWT_TOKEN",
+  "user": {
+    "_id": "...",
+    "name": "John Doe",
+    "role": "dealer"
+  }
+}
+
+Token is used for:
+
+Authorization: Bearer <token>
+
+And Socket.IO authentication:
+
+auth: { token }
+10. Real-Time Features
+
+Connection flow:
+
+1️⃣ User logs in
+2️⃣ Frontend connects socket with JWT
+3️⃣ Server authenticates token
+4️⃣ User joins personal room
+
+user-{userId}
+
+Rooms used:
+
+dealer-marketplace
+garbage-{id}
+user-{userId}
+11. API Overview
+Health
+GET /api/health
+Auth
+POST /api/auth/register
+POST /api/auth/login
+Garbage
+Marketplace
+GET /api/garbage/marketplace
+
+Dealer only.
+
+Create Waste
+POST /api/garbage
+
+Customer only.
+
+Claim Waste
+POST /api/garbage/:id/claim
+
+Dealer only.
+
+12. Socket Events
+Client → Server
+dealer:joinMarketplace
+dealer:leaveMarketplace
+garbage:subscribe
+garbage:unsubscribe
+Server → Client
+dealer:joinedMarketplace
+dealer:leftMarketplace
+
+garbage:created
+garbage:claimed
+garbage:statusChanged
+
+notification:new
+error
+13. Development Workflow
+
+1️⃣ Start MongoDB
+2️⃣ Start backend
+
+npm run dev
+
+3️⃣ Start frontend
+
+npm run dev
+
+4️⃣ Login as dealer and customer in separate browsers.
+
+5️⃣ Create waste and observe real-time marketplace updates.
+
+14. Testing
+Manual Testing
+
+Tools:
+
+Postman
+
+Thunder Client
+
+Browser DevTools
+
+Inspect WebSocket frames:
+
+Network → WS
+Automated Testing (Optional)
+
+Possible additions:
+
+Jest
+
+Supertest
+
+Artillery
+
+k6
+
+15. Potential Improvements
+
+Possible future enhancements:
+
+Driver mobile app with GPS tracking
+
+Marketplace filters (distance, weight, type)
+
+Admin dashboard
+
+Persistent notifications
+
+Rate limiting
+
+CI/CD pipelines
+
+16. License
+
+This project is intended for learning and portfolio purposes.
+
+You are free to modify, adapt, and reuse the code in your own projects.
+
+For production usage, ensure:
+
+security hardening
+
+validation
+
+proper deployment practices
