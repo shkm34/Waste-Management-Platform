@@ -8,37 +8,39 @@ Built with MongoDB, Express, React, Node.js, and TypeScript.
 
 📑 Table of Contents
 
-Overview
+1. Overview
 
-Core Features
+2. Core Features
 
-Architecture
+3. Architecture
 
-Tech Stack
+4. Tech Stack
 
-Folder Structure
+5. Folder Structure
 
-Backend Setup
+6. Backend Setup
 
-Frontend Setup
+7. Frontend Setup
 
-Environment Variables
+8. Environment Variables
 
-Authentication & Roles
+9. Authentication & Roles
 
-Real-Time Features
+10. Real-Time Features
 
-API Overview
+11. API Overview
 
-Socket Events
+12. Socket Events
 
-Development Workflow
+13. Development Workflow
 
-Testing
+14. Testing
 
-Potential Improvements
+15. Potential Improvements
 
-License
+16. License
+
+    
 
 1. Overview
 
